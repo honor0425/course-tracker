@@ -403,12 +403,16 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">課程連結（選填）</label>
-      <input type="url" id="f-url" placeholder="https://...">
+      <label class="form-label">課程連結</label>
+      <div style="display:flex;gap:6px;">
+        <input type="url" id="f-url" placeholder="https://..." style="flex:1;">
+        <button type="button" onclick="fetchThumb()" id="fetch-btn" style="padding:7px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border-md);background:var(--bg-secondary);color:var(--text);cursor:pointer;font-size:12px;white-space:nowrap;">自動抓取封面</button>
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">縮圖網址（選填，貼課程封面圖片網址）</label>
-      <input type="url" id="f-img" placeholder="https://...封面圖片網址...">
+      <label class="form-label">封面預覽</label>
+      <div id="thumb-preview" style="width:100%;height:120px;border-radius:var(--radius-md);border:0.5px solid var(--border-md);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--text-tertiary);font-size:13px;">尚未設定封面</div>
+      <input type="hidden" id="f-img">
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">取消</button>
@@ -530,7 +534,43 @@ function setFilter(f, btn) {
   render();
 }
 
-const PRESETS = ['Udemy','Coursera','YouTube','hahow','Hiskio'];
+function setThumbPreview(imgUrl) {
+  const preview = document.getElementById('thumb-preview');
+  document.getElementById('f-img').value = imgUrl || '';
+  if (imgUrl) {
+    preview.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<span style=color:var(--color-text-tertiary);font-size:13px>封面載入失敗，請手動貼圖片網址</span>'">`;
+  } else {
+    preview.innerHTML = '尚未設定封面';
+  }
+}
+
+async function fetchThumb() {
+  const url = document.getElementById('f-url').value.trim();
+  if (!url) { alert('請先填入課程連結'); return; }
+  const btn = document.getElementById('fetch-btn');
+  btn.textContent = '抓取中...';
+  btn.disabled = true;
+  try {
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const html = data.contents || '';
+    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    if (match && match[1]) {
+      setThumbPreview(match[1]);
+    } else {
+      alert('無法自動抓取封面，請右鍵複製圖片網址後手動填入');
+    }
+  } catch(e) {
+    alert('抓取失敗，請稍後再試或手動填入圖片網址');
+  } finally {
+    btn.textContent = '自動抓取封面';
+    btn.disabled = false;
+  }
+}
+
+
 
 function toggleCustomPlatform(val) {
   const ci = document.getElementById('f-platform-custom');
@@ -571,7 +611,7 @@ function openModal(id) {
     document.getElementById('f-progress').value = c.progress || 0;
     document.getElementById('f-chapter').value = c.chapter || '';
     document.getElementById('f-url').value = c.url || '';
-    document.getElementById('f-img').value = c.img || '';
+    setThumbPreview(c.img || '');
   } else {
     document.getElementById('f-name').value = '';
     setPlatformField('Udemy');
@@ -579,7 +619,7 @@ function openModal(id) {
     document.getElementById('f-progress').value = 0;
     document.getElementById('f-chapter').value = '';
     document.getElementById('f-url').value = '';
-    document.getElementById('f-img').value = '';
+    setThumbPreview('');
   }
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-name').focus();
