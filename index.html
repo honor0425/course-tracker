@@ -185,7 +185,16 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   var autoFlipTimer = null;
   var EDGE = 80;
 
-  function clearAutoFlip(){ if(autoFlipTimer){ clearInterval(autoFlipTimer); autoFlipTimer=null; } }
+  function clearAutoFlip(){ if(autoFlipTimer){ clearTimeout(autoFlipTimer); autoFlipTimer=null; } }
+
+  function startAutoFlipTo(page){
+    clearAutoFlip();
+    autoFlipTimer=setTimeout(function(){
+      currentPage=page;
+      render();
+      autoFlipTimer=null;
+    },600);
+  }
 
   function startAutoFlip(dir){
     if(autoFlipTimer) return;
@@ -443,6 +452,23 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     pg.querySelector('#pg-next').addEventListener('click',function(){ if(currentPage<totalPages){ currentPage++; render(); } });
     pg.querySelectorAll('[data-page]').forEach(function(btn){
       btn.addEventListener('click',function(){ currentPage=parseInt(this.getAttribute('data-page')); render(); });
+      btn.addEventListener('dragover',function(e){
+        e.preventDefault();
+        e.dataTransfer.dropEffect='move';
+        this.style.transform='scale(1.2)';
+        startAutoFlipTo(parseInt(this.getAttribute('data-page')));
+      });
+      btn.addEventListener('dragleave',function(){
+        this.style.transform='';
+        clearAutoFlip();
+      });
+      btn.addEventListener('drop',function(e){
+        e.preventDefault();
+        this.style.transform='';
+        var page=parseInt(this.getAttribute('data-page'));
+        currentPage=page;
+        render();
+      });
     });
   }
 
@@ -520,16 +546,23 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     doSave();
   }
 
-  // Edge-based auto page flip during drag
-  document.addEventListener('dragover',function(e){
-    if(dragSrcIdx===null) return;
-    var x=e.clientX;
-    var w=window.innerWidth;
-    if(x<EDGE){ startAutoFlip('prev'); }
-    else if(x>w-EDGE){ startAutoFlip('next'); }
-    else{ clearAutoFlip(); }
+  // Page flip via dragging over pagination buttons
+  document.addEventListener('dragover', function(e) {
+    if (dragSrcIdx === null) return;
+    var pgBtns = document.querySelectorAll('.pg-btn[data-page]');
+    pgBtns.forEach(function(btn) {
+      var rect = btn.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        var page = parseInt(btn.getAttribute('data-page'));
+        if (page !== currentPage) {
+          btn.classList.add('on');
+          startAutoFlipTo(page);
+        }
+      }
+    });
   });
-  document.addEventListener('dragend',function(){ clearAutoFlip(); });
+  document.addEventListener('dragend', function() { clearAutoFlip(); });
 
   // --- Events ---
   document.getElementById('btn-add').addEventListener('click',function(){ openModal(null); });
