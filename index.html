@@ -252,6 +252,12 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       if(platforms.indexOf(current)>=0) sel.value=current;
       else { sel.value='__other__'; document.getElementById('f-custom').style.display='block'; document.getElementById('f-custom').value=current; }
     }
+    // Re-bind change event every time select is rebuilt
+    sel.onchange = function(){
+      var ci=document.getElementById('f-custom');
+      ci.style.display=this.value==='__other__'?'block':'none';
+      if(this.value==='__other__'){ ci.value=''; ci.focus(); }
+    };
   }
 
   function openPlatformManager() {
@@ -579,11 +585,6 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   document.getElementById('btn-save').addEventListener('click',saveCourse);
   document.getElementById('overlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
   document.getElementById('mgr-overlay').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
-  document.getElementById('f-platform').addEventListener('change',function(){
-    var ci=document.getElementById('f-custom');
-    ci.style.display=this.value==='__other__'?'block':'none';
-    if(this.value==='__other__') ci.focus();
-  });
   document.getElementById('f-img-manual').addEventListener('input',function(){
     var val=this.value.trim(); if(val) setPreview(val);
   });
