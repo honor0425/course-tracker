@@ -51,7 +51,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 .empty{text-align:center;padding:3rem 1rem;color:var(--tx3);font-size:14px;display:none}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:100}
 .overlay.open{display:flex}
-.modal{background:var(--bg);border:.5px solid var(--bd2);border-radius:var(--rl);padding:1.5rem;width:400px;max-width:calc(100vw - 2rem);max-height:90vh;overflow-y:auto}
+.modal{background:var(--bg);border:.5px solid var(--bd2);border-radius:var(--rl);padding:1.5rem;width:420px;max-width:calc(100vw - 2rem);max-height:90vh;overflow-y:auto}
 .modal h2{font-size:15px;font-weight:500;margin-bottom:1.1rem}
 .fg{margin-bottom:12px}
 .fl{font-size:12px;color:var(--tx2);margin-bottom:4px;display:block}
@@ -59,12 +59,13 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 .fg input:focus,.fg select:focus{border-color:var(--tx2)}
 .frow{display:flex;gap:8px}
 .frow .fg{flex:1}
-.fetch-row{display:flex;gap:6px}
-.fetch-row input{flex:1}
-.fetch-btn{padding:7px 10px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px;white-space:nowrap}
+.url-row{display:flex;gap:6px}
+.url-row input{flex:1}
+.fetch-btn{padding:7px 10px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0}
 .fetch-btn:disabled{opacity:.5;cursor:default}
-.prev-box{width:100%;height:110px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--tx3);font-size:13px}
+.prev-box{width:100%;height:110px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--tx3);font-size:13px;margin-top:8px}
 .prev-box img{width:100%;height:100%;object-fit:cover}
+.hint{font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.5}
 .mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1.2rem}
 .btn-ok{background:var(--tx);color:var(--bg);border:none;font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
 .btn-no{background:transparent;color:var(--tx2);border:.5px solid var(--bd2);font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
@@ -93,7 +94,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 </div>
 
 <div class="overlay" id="overlay">
-  <div class="modal" id="modal-box">
+  <div class="modal">
     <h2 id="modal-title">新增課程</h2>
     <div class="fg"><label class="fl">課程名稱</label><input type="text" id="f-name" placeholder="例：Python 機器學習實戰"></div>
     <div class="frow">
@@ -110,9 +111,18 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     </div>
     <div class="fg">
       <label class="fl">課程連結</label>
-      <div class="fetch-row"><input type="url" id="f-url" placeholder="https://..."><button class="fetch-btn" id="fetch-btn">自動抓取封面</button></div>
+      <div class="url-row">
+        <input type="url" id="f-url" placeholder="https://...">
+        <button class="fetch-btn" id="fetch-btn">自動抓取封面</button>
+      </div>
     </div>
-    <div class="fg"><label class="fl">封面預覽</label><div class="prev-box" id="preview">尚未設定封面</div><input type="hidden" id="f-img"></div>
+    <div class="fg">
+      <label class="fl">封面圖片</label>
+      <div class="prev-box" id="preview">尚未設定封面</div>
+      <input type="hidden" id="f-img">
+      <div class="hint">💡 自動抓取失敗時：在課程頁對封面圖片按右鍵 → 複製圖片網址，貼到下方</div>
+      <input type="url" id="f-img-manual" placeholder="手動貼上圖片網址" style="margin-top:6px">
+    </div>
     <div class="mfoot"><button class="btn-no" id="btn-cancel">取消</button><button class="btn-ok" id="btn-save">儲存</button></div>
   </div>
 </div>
@@ -182,7 +192,9 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     for (var i=0; i<visible.length; i++) {
       var c = visible[i];
       var bg = platBg(c.platform);
-      var inner = c.img ? '<img src="'+esc(c.img)+'" alt="" onerror="this.style.display=\'none\'">' : '<span class="thumb-icon">📖</span>';
+      var inner = c.img
+        ? '<img src="'+esc(c.img)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '<span class="thumb-icon">📖</span>';
       var style = c.img ? '' : 'background:'+bg+';';
       var thumb = c.url
         ? '<a href="'+esc(c.url)+'" class="thumb" target="_blank" rel="noopener" style="'+style+'">'+inner+'<div class="play-ov">▶</div></a>'
@@ -209,6 +221,16 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     });
   }
 
+  function setPreview(url) {
+    var box = document.getElementById('preview');
+    document.getElementById('f-img').value = url || '';
+    if (url) {
+      box.innerHTML = '<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">';
+    } else {
+      box.textContent = '尚未設定封面';
+    }
+  }
+
   function openModal(id) {
     editingId = id || null;
     document.getElementById('modal-title').textContent = id ? '編輯課程' : '新增課程';
@@ -222,6 +244,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       document.getElementById('f-progress').value = c.progress||0;
       document.getElementById('f-chapter').value = c.chapter||'';
       document.getElementById('f-url').value = c.url||'';
+      document.getElementById('f-img-manual').value = c.img||'';
       setPreview(c.img||'');
     } else {
       document.getElementById('f-name').value = '';
@@ -230,6 +253,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       document.getElementById('f-progress').value = 0;
       document.getElementById('f-chapter').value = '';
       document.getElementById('f-url').value = '';
+      document.getElementById('f-img-manual').value = '';
       setPreview('');
     }
     document.getElementById('overlay').classList.add('open');
@@ -243,7 +267,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
   function setPlatform(p) {
     var sel = document.getElementById('f-platform');
     var ci = document.getElementById('f-custom');
-    if (PRESETS.indexOf(p) >= 0) { sel.value = p; ci.style.display='none'; ci.value=''; }
+    if (PRESETS.indexOf(p) >= 0) { sel.value=p; ci.style.display='none'; ci.value=''; }
     else { sel.value='__other__'; ci.style.display='block'; ci.value=p||''; }
   }
 
@@ -253,16 +277,13 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     return sel.value;
   }
 
-  function setPreview(url) {
-    var box = document.getElementById('preview');
-    document.getElementById('f-img').value = url||'';
-    if (url) { box.innerHTML = '<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">'; }
-    else { box.textContent = '尚未設定封面'; }
-  }
-
   function saveCourse() {
     var name = document.getElementById('f-name').value.trim();
     if (!name) { alert('請輸入課程名稱'); return; }
+    // manual field overrides hidden field if filled
+    var manualImg = document.getElementById('f-img-manual').value.trim();
+    if (manualImg) setPreview(manualImg);
+    var img = document.getElementById('f-img').value.trim();
     var data = {
       id: editingId || String(Date.now()),
       name: name,
@@ -271,7 +292,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       progress: Math.min(100, Math.max(0, parseInt(document.getElementById('f-progress').value)||0)),
       chapter: document.getElementById('f-chapter').value.trim(),
       url: document.getElementById('f-url').value.trim(),
-      img: document.getElementById('f-img').value.trim()
+      img: img
     };
     if (editingId) {
       for (var i=0; i<courses.length; i++) { if (courses[i].id===editingId) { courses[i]=data; break; } }
@@ -287,33 +308,60 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     save(); render();
   }
 
-  // Wire up buttons via addEventListener (no inline onclick)
-  document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
-  document.getElementById('btn-cancel').addEventListener('click', closeModal);
-  document.getElementById('btn-save').addEventListener('click', saveCourse);
-  document.getElementById('overlay').addEventListener('click', function(e) { if (e.target===this) closeModal(); });
-  document.getElementById('f-platform').addEventListener('change', function() {
-    var ci = document.getElementById('f-custom');
-    ci.style.display = this.value==='__other__' ? 'block' : 'none';
-  });
+  // auto-fetch using microlink (free, no key needed)
   document.getElementById('fetch-btn').addEventListener('click', function() {
     var url = document.getElementById('f-url').value.trim();
     if (!url) { alert('請先填入課程連結'); return; }
     var btn = this;
     btn.textContent = '抓取中...'; btn.disabled = true;
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        var html = data.contents||'';
-        var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-               || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-        if (m && m[1]) { setPreview(m[1]); }
-        else { alert('無法自動抓取封面，請右鍵複製課程封面圖片網址後手動填入'); }
-      })
-      .catch(function(){ alert('抓取失敗，請稍後再試'); })
-      .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
+
+    // Try multiple proxies in sequence
+    var proxies = [
+      'https://api.microlink.io/?url=' + encodeURIComponent(url),
+      'https://api.allorigins.win/get?url=' + encodeURIComponent(url)
+    ];
+
+    function tryMicrolink() {
+      fetch(proxies[0])
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var img = data && data.data && data.data.image && data.data.image.url;
+          if (img) { setPreview(img); btn.textContent='自動抓取封面'; btn.disabled=false; }
+          else { tryAllOrigins(); }
+        })
+        .catch(function(){ tryAllOrigins(); });
+    }
+
+    function tryAllOrigins() {
+      fetch(proxies[1])
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var html = data.contents || '';
+          var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                 || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+          if (m && m[1]) { setPreview(m[1]); }
+          else { alert('自動抓取失敗，請用右鍵複製圖片網址後手動貼到「手動貼上圖片網址」欄位'); }
+        })
+        .catch(function(){ alert('自動抓取失敗，請用右鍵複製圖片網址後手動貼到「手動貼上圖片網址」欄位'); })
+        .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
+    }
+
+    tryMicrolink();
   });
 
+  // live preview when manual URL is pasted
+  document.getElementById('f-img-manual').addEventListener('input', function() {
+    var val = this.value.trim();
+    if (val) setPreview(val);
+  });
+
+  document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  document.getElementById('btn-save').addEventListener('click', saveCourse);
+  document.getElementById('overlay').addEventListener('click', function(e) { if (e.target===this) closeModal(); });
+  document.getElementById('f-platform').addEventListener('change', function() {
+    document.getElementById('f-custom').style.display = this.value==='__other__' ? 'block' : 'none';
+  });
   document.querySelectorAll('.fbtn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.fbtn').forEach(function(b){ b.classList.remove('on'); });
