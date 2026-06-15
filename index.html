@@ -4,376 +4,165 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>課程追蹤板</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --bg: #ffffff;
+  --bg2: #f5f5f3;
+  --bg3: #f0efeb;
+  --text: #1a1a18;
+  --text2: #6b6b67;
+  --text3: #9b9b96;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --r: 8px;
+  --rl: 12px;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #ffffff;
-    --bg-secondary: #f5f5f3;
-    --bg-tertiary: #f0efeb;
-    --text: #1a1a18;
-    --text-secondary: #6b6b67;
-    --text-tertiary: #9b9b96;
-    --border: rgba(0,0,0,0.10);
-    --border-md: rgba(0,0,0,0.18);
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+    --text: #f0efe9; --text2: #a8a8a2; --text3: #6b6b67;
+    --border: rgba(255,255,255,0.10); --border2: rgba(255,255,255,0.18);
   }
+}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a;
-      --bg-secondary: #252523;
-      --bg-tertiary: #2e2e2b;
-      --text: #f0efe9;
-      --text-secondary: #a8a8a2;
-      --text-tertiary: #6b6b67;
-      --border: rgba(255,255,255,0.10);
-      --border-md: rgba(255,255,255,0.18);
-    }
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg3); color: var(--text);
+  min-height: 100vh; padding: 2rem 1rem;
+}
+.wrap { max-width: 900px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 2rem; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg-tertiary);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem;
-  }
+.sec-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
 
-  .container { max-width: 900px; margin: 0 auto; }
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 2rem; }
+@media(max-width:600px){ .stats { grid-template-columns: repeat(2,1fr); } }
+.stat { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+.stat-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.stat-val { font-size: 22px; font-weight: 500; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.bar-bg { background: var(--border); border-radius: 99px; height: 5px; margin-top: 8px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
 
-  h1 {
-    font-size: 20px;
-    font-weight: 500;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-  }
-  h1 i { font-size: 22px; color: var(--text-secondary); }
+.controls { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+.fbtn { font-size: 12px; padding: 5px 13px; border-radius: 99px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; }
+.fbtn.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.add-btn { margin-left: auto; font-size: 13px; padding: 6px 16px; border-radius: var(--r); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; }
+.add-btn:hover { background: var(--bg2); }
 
-  .section-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 10px;
-  }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 14px; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--rl); overflow: hidden; transition: border-color 0.15s, transform 0.15s; }
+.card:hover { border-color: var(--border2); transform: translateY(-2px); }
 
-  /* Stats */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 2rem;
-  }
-  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.thumb { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; text-decoration: none; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-icon { font-size: 42px; }
+.play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; font-size: 30px; color: #fff; }
+.thumb:hover .play-overlay { opacity: 1; }
 
-  .stat-card {
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-  }
-  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
-  .stat-value { font-size: 22px; font-weight: 500; }
-  .stat-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
-  .progress-bar-bg {
-    background: var(--border);
-    border-radius: 99px;
-    height: 5px;
-    margin-top: 8px;
-    overflow: hidden;
-  }
-  .progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+.card-body { padding: 12px 14px 14px; }
+.card-platform { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.card-title { font-size: 13px; font-weight: 500; line-height: 1.45; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.prog-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.prog-pct { font-size: 12px; font-weight: 500; }
+.prog-ch { font-size: 11px; color: var(--text3); }
+.card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 99px; }
+.b-todo { background: #F1EFE8; color: #5F5E5A; }
+.b-doing { background: #E6F1FB; color: #185FA5; }
+.b-done { background: #EAF3DE; color: #3B6D11; }
+@media(prefers-color-scheme:dark){
+  .b-todo{background:#2e2d29;color:#a8a8a0}
+  .b-doing{background:#0c2340;color:#6aadee}
+  .b-done{background:#152810;color:#7ec95a}
+}
+.card-actions { display: flex; gap: 4px; }
+.cbtn { width: 28px; height: 28px; border-radius: var(--r); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.cbtn:hover { background: var(--bg2); }
 
-  /* Controls */
-  .controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .filter-btn {
-    font-size: 12px;
-    padding: 5px 13px;
-    border-radius: 99px;
-    border: 0.5px solid var(--border-md);
-    background: var(--bg);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .filter-btn.active {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-  }
-  .add-btn {
-    margin-left: auto;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: var(--radius-md);
-    border: 0.5px solid var(--border-md);
-    background: var(--bg);
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.15s;
-  }
-  .add-btn:hover { background: var(--bg-secondary); }
+.empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; display: none; }
 
-  /* Cards */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 14px;
-  }
-  .course-card {
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    transition: border-color 0.15s, transform 0.15s;
-  }
-  .course-card:hover { border-color: var(--border-md); transform: translateY(-2px); }
-
-  .card-thumb {
-    width: 100%;
-    height: 110px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    text-decoration: none;
-    position: relative;
-    cursor: pointer;
-  }
-  .card-thumb:hover .thumb-overlay { opacity: 1; }
-  .thumb-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.22);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: 32px;
-    color: #fff;
-  }
-  .thumb-no-link {
-    cursor: default;
-  }
-  .thumb-no-link .thumb-overlay { display: none; }
-
-  .card-body { padding: 12px 14px 14px; }
-  .card-platform {
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 4px;
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.45;
-    margin-bottom: 10px;
-    color: var(--text);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .card-progress-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
-  }
-  .card-pct { font-size: 12px; font-weight: 500; }
-  .card-chapter { font-size: 11px; color: var(--text-tertiary); }
-  .progress-bar-bg {
-    background: var(--border);
-    border-radius: 99px;
-    height: 4px;
-    overflow: hidden;
-  }
-  .progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-  .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 99px;
-  }
-  .badge-todo { background: #F1EFE8; color: #5F5E5A; }
-  .badge-doing { background: #E6F1FB; color: #185FA5; }
-  .badge-done { background: #EAF3DE; color: #3B6D11; }
-  @media (prefers-color-scheme: dark) {
-    .badge-todo { background: #2e2d29; color: #a8a8a0; }
-    .badge-doing { background: #0c2340; color: #6aadee; }
-    .badge-done { background: #152810; color: #7ec95a; }
-  }
-  .card-actions { display: flex; gap: 4px; }
-  .card-btn {
-    font-size: 12px;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-md);
-    border: 0.5px solid var(--border-md);
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card-btn:hover { background: var(--bg-secondary); }
-
-  /* Empty */
-  .empty-state {
-    text-align: center;
-    padding: 3.5rem 1rem;
-    color: var(--text-tertiary);
-    font-size: 14px;
-    display: none;
-  }
-  .empty-state i { font-size: 36px; display: block; margin-bottom: 10px; }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--bg);
-    border: 0.5px solid var(--border-md);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    width: 380px;
-    max-width: calc(100vw - 2rem);
-  }
-  .modal h2 { font-size: 15px; font-weight: 500; margin-bottom: 1.1rem; }
-  .form-group { margin-bottom: 12px; }
-  .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block; }
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    font-size: 13px;
-    padding: 7px 10px;
-    border-radius: var(--radius-md);
-    border: 0.5px solid var(--border-md);
-    background: var(--bg-secondary);
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .form-group input:focus,
-  .form-group select:focus { border-color: var(--text-secondary); }
-  .form-row { display: flex; gap: 8px; }
-  .form-row .form-group { flex: 1; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.2rem; }
-  .btn-primary {
-    background: var(--text);
-    color: var(--bg);
-    border: none;
-    font-size: 13px;
-    padding: 7px 18px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-  }
-  .btn-cancel {
-    background: transparent;
-    color: var(--text-secondary);
-    border: 0.5px solid var(--border-md);
-    font-size: 13px;
-    padding: 7px 18px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-  }
-  .btn-cancel:hover { background: var(--bg-secondary); }
+/* Modal */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); align-items: center; justify-content: center; z-index: 100; }
+.overlay.open { display: flex; }
+.modal { background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--rl); padding: 1.5rem; width: 400px; max-width: calc(100vw - 2rem); max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 15px; font-weight: 500; margin-bottom: 1.1rem; }
+.fg { margin-bottom: 12px; }
+.fl { font-size: 12px; color: var(--text2); margin-bottom: 4px; display: block; }
+.fg input, .fg select, .fg textarea {
+  width: 100%; font-size: 13px; padding: 7px 10px;
+  border-radius: var(--r); border: 0.5px solid var(--border2);
+  background: var(--bg2); color: var(--text); outline: none;
+  transition: border-color 0.15s; font-family: inherit;
+}
+.fg input:focus, .fg select:focus { border-color: var(--text2); }
+.frow { display: flex; gap: 8px; }
+.frow .fg { flex: 1; }
+.fetch-row { display: flex; gap: 6px; }
+.fetch-row input { flex: 1; }
+.fetch-btn { padding: 7px 10px; border-radius: var(--r); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-size: 12px; white-space: nowrap; }
+.fetch-btn:disabled { opacity: 0.5; cursor: default; }
+.preview-box { width: 100%; height: 110px; border-radius: var(--r); border: 0.5px solid var(--border2); background: var(--bg2); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--text3); font-size: 13px; }
+.preview-box img { width: 100%; height: 100%; object-fit: cover; }
+.mfoot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.2rem; }
+.btn-ok { background: var(--text); color: var(--bg); border: none; font-size: 13px; padding: 7px 18px; border-radius: var(--r); cursor: pointer; }
+.btn-no { background: transparent; color: var(--text2); border: 0.5px solid var(--border2); font-size: 13px; padding: 7px 18px; border-radius: var(--r); cursor: pointer; }
+.btn-no:hover { background: var(--bg2); }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1><i class="ti ti-books" aria-hidden="true"></i>課程追蹤板</h1>
+<div class="wrap">
+  <h1>📚 課程追蹤板</h1>
 
-  <div class="section-label">總覽</div>
-  <div class="stats-grid">
-    <div class="stat-card">
+  <div class="sec-label">總覽</div>
+  <div class="stats">
+    <div class="stat">
       <div class="stat-label">課程總數</div>
-      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-val" id="s-total">0</div>
       <div class="stat-sub">所有平台</div>
     </div>
-    <div class="stat-card">
+    <div class="stat">
       <div class="stat-label">整體完成率</div>
-      <div class="stat-value" id="stat-rate">0%</div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="stat-bar" style="width:0%;background:#639922;"></div></div>
+      <div class="stat-val" id="s-rate">0%</div>
+      <div class="bar-bg"><div class="bar-fill" id="s-bar" style="width:0%;background:#639922"></div></div>
     </div>
-    <div class="stat-card">
+    <div class="stat">
       <div class="stat-label">進行中</div>
-      <div class="stat-value" id="stat-doing">0</div>
+      <div class="stat-val" id="s-doing">0</div>
       <div class="stat-sub">課程</div>
     </div>
-    <div class="stat-card">
+    <div class="stat">
       <div class="stat-label">已完成</div>
-      <div class="stat-value" id="stat-done">0</div>
+      <div class="stat-val" id="s-done">0</div>
       <div class="stat-sub">課程</div>
     </div>
   </div>
 
   <div class="controls">
-    <button class="filter-btn active" onclick="setFilter('all',this)">全部</button>
-    <button class="filter-btn" onclick="setFilter('todo',this)">未開始</button>
-    <button class="filter-btn" onclick="setFilter('doing',this)">進行中</button>
-    <button class="filter-btn" onclick="setFilter('done',this)">已完成</button>
-    <button class="add-btn" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i>新增課程</button>
+    <button class="fbtn on" onclick="setFilter('all',this)">全部</button>
+    <button class="fbtn" onclick="setFilter('todo',this)">未開始</button>
+    <button class="fbtn" onclick="setFilter('doing',this)">進行中</button>
+    <button class="fbtn" onclick="setFilter('done',this)">已完成</button>
+    <button class="add-btn" onclick="openModal(null)">＋ 新增課程</button>
   </div>
 
-  <div class="cards-grid" id="cards-container"></div>
-  <div class="empty-state" id="empty-state">
-    <i class="ti ti-books" aria-hidden="true"></i>
-    還沒有課程，點右上角「新增課程」開始追蹤吧！
-  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty">還沒有課程，點右上角「新增課程」開始追蹤吧！</div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modal" onclick="handleOverlay(event)">
+<div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modal-title">新增課程</h2>
-    <div class="form-group">
-      <label class="form-label">課程名稱</label>
+    <div class="fg">
+      <label class="fl">課程名稱</label>
       <input type="text" id="f-name" placeholder="例：Python 機器學習實戰">
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">平台</label>
-        <select id="f-platform" onchange="toggleCustomPlatform(this.value)">
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">平台</label>
+        <select id="f-platform" onchange="onPlatformChange(this.value)">
           <option>Udemy</option>
           <option>Coursera</option>
           <option>YouTube</option>
@@ -381,10 +170,10 @@
           <option>Hiskio</option>
           <option value="__other__">其他...</option>
         </select>
-        <input type="text" id="f-platform-custom" placeholder="輸入平台名稱" style="margin-top:6px;display:none;">
+        <input type="text" id="f-custom" placeholder="輸入平台名稱" style="margin-top:6px;display:none;">
       </div>
-      <div class="form-group">
-        <label class="form-label">狀態</label>
+      <div class="fg">
+        <label class="fl">狀態</label>
         <select id="f-status">
           <option value="todo">未開始</option>
           <option value="doing">進行中</option>
@@ -392,264 +181,258 @@
         </select>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">進度 (%)</label>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">進度 (%)</label>
         <input type="number" id="f-progress" min="0" max="100" value="0">
       </div>
-      <div class="form-group">
-        <label class="form-label">章節（選填）</label>
+      <div class="fg">
+        <label class="fl">章節（選填）</label>
         <input type="text" id="f-chapter" placeholder="例：第 3 章">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">課程連結</label>
-      <div style="display:flex;gap:6px;">
-        <input type="url" id="f-url" placeholder="https://..." style="flex:1;">
-        <button type="button" onclick="fetchThumb()" id="fetch-btn" style="padding:7px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border-md);background:var(--bg-secondary);color:var(--text);cursor:pointer;font-size:12px;white-space:nowrap;">自動抓取封面</button>
+    <div class="fg">
+      <label class="fl">課程連結</label>
+      <div class="fetch-row">
+        <input type="url" id="f-url" placeholder="https://...">
+        <button class="fetch-btn" id="fetch-btn" onclick="doFetch()">自動抓取封面</button>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">封面預覽</label>
-      <div id="thumb-preview" style="width:100%;height:120px;border-radius:var(--radius-md);border:0.5px solid var(--border-md);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--text-tertiary);font-size:13px;">尚未設定封面</div>
+    <div class="fg">
+      <label class="fl">封面預覽</label>
+      <div class="preview-box" id="preview">尚未設定封面</div>
       <input type="hidden" id="f-img">
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn-primary" onclick="saveCourse()">儲存</button>
+    <div class="mfoot">
+      <button class="btn-no" onclick="closeModal()">取消</button>
+      <button class="btn-ok" onclick="saveCourse()">儲存</button>
     </div>
   </div>
 </div>
 
 <script>
-let courses = [];
-let filter = 'all';
-let editingId = null;
-const KEY = 'course-tracker-v1';
+var courses = [];
+var currentFilter = 'all';
+var editingId = null;
+var PRESETS = ['Udemy','Coursera','YouTube','hahow','Hiskio'];
+var KEY = 'course-tracker-v1';
 
 function load() {
-  try { courses = JSON.parse(localStorage.getItem(KEY)) || []; } catch { courses = []; }
+  try { courses = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { courses = []; }
   render();
 }
 
 function save() {
-  localStorage.setItem(KEY, JSON.stringify(courses));
+  try { localStorage.setItem(KEY, JSON.stringify(courses)); } catch(e) {}
 }
 
-function getProgressColor(p) {
-  if (p === 100) return '#639922';
+function progColor(p) {
+  if (p >= 100) return '#639922';
   if (p >= 50) return '#185FA5';
   if (p > 0) return '#BA7517';
   return '#888780';
 }
 
-function getBadge(status) {
-  const map = {
-    todo: ['badge-todo', 'ti-clock', '未開始'],
-    doing: ['badge-doing', 'ti-player-play', '進行中'],
-    done: ['badge-done', 'ti-check', '已完成'],
-  };
-  const [cls, icon, label] = map[status] || map.todo;
-  return `<span class="status-badge ${cls}"><i class="ti ${icon}" aria-hidden="true"></i>${label}</span>`;
+function platformInfo(p) {
+  var n = (p || '').toLowerCase();
+  if (n === 'udemy') return { bg:'#a435f0' };
+  if (n === 'coursera') return { bg:'#0056d2' };
+  if (n === 'youtube') return { bg:'#ff0000' };
+  if (n === 'hahow') return { bg:'#f65858' };
+  if (n === 'hiskio') return { bg:'#1565c0' };
+  return { bg:'#6b6b67' };
 }
 
-function getPlatformStyle(platform) {
-  const p = (platform || '').toLowerCase();
-  if (p === 'udemy') return { bg: '#a435f0', favicon: 'https://www.udemy.com/favicon.ico' };
-  if (p === 'coursera') return { bg: '#0056d2', favicon: 'https://www.coursera.org/favicon.ico' };
-  if (p === 'youtube') return { bg: '#ff0000', favicon: 'https://www.youtube.com/favicon.ico' };
-  if (p === 'hahow') return { bg: '#f65858', favicon: 'https://hahow.in/favicon.ico' };
-  if (p === 'hiskio') return { bg: '#1565c0', favicon: 'https://hiskio.com/favicon.ico' };
-  return { bg: '#6b6b67', favicon: null };
+function badgeHtml(status) {
+  if (status === 'done') return '<span class="badge b-done">✓ 已完成</span>';
+  if (status === 'doing') return '<span class="badge b-doing">▶ 進行中</span>';
+  return '<span class="badge b-todo">○ 未開始</span>';
 }
 
 function render() {
-  const visible = filter === 'all' ? courses : courses.filter(c => c.status === filter);
-  const total = courses.length;
-  const done = courses.filter(c => c.status === 'done').length;
-  const doing = courses.filter(c => c.status === 'doing').length;
-  const avg = total ? Math.round(courses.reduce((s, c) => s + (c.progress || 0), 0) / total) : 0;
+  var visible = currentFilter === 'all' ? courses : courses.filter(function(c){ return c.status === currentFilter; });
+  var total = courses.length;
+  var done = courses.filter(function(c){ return c.status === 'done'; }).length;
+  var doing = courses.filter(function(c){ return c.status === 'doing'; }).length;
+  var avg = total ? Math.round(courses.reduce(function(s,c){ return s + (c.progress||0); }, 0) / total) : 0;
 
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-rate').textContent = avg + '%';
-  document.getElementById('stat-bar').style.width = avg + '%';
-  document.getElementById('stat-doing').textContent = doing;
-  document.getElementById('stat-done').textContent = done;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-rate').textContent = avg + '%';
+  document.getElementById('s-bar').style.width = avg + '%';
+  document.getElementById('s-doing').textContent = doing;
+  document.getElementById('s-done').textContent = done;
 
-  const container = document.getElementById('cards-container');
-  const empty = document.getElementById('empty-state');
+  var grid = document.getElementById('grid');
+  var empty = document.getElementById('empty');
 
   if (visible.length === 0) {
-    container.innerHTML = '';
+    grid.innerHTML = '';
     empty.style.display = 'block';
-  } else {
-    empty.style.display = 'none';
-    container.innerHTML = visible.map(c => {
-      const ps = getPlatformStyle(c.platform);
-      const thumbInner = c.img
-        ? `<img src="${c.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextSibling.style.display='flex';" alt=""><div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:36px;">📖</div>`
-        : ps.favicon
-          ? `<img src="${ps.favicon}" style="width:56px;height:56px;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block';" alt="${c.platform}"><span style="display:none;font-size:36px;">📖</span>`
-          : `<span style="font-size:36px;">📖</span>`;
-      const thumbStyle = c.img ? '' : `background:${ps.bg};`;
-      const thumbTag = c.url
-        ? `<a href="${c.url}" class="card-thumb" target="_blank" rel="noopener" style="${thumbStyle}" title="點擊開始上課">
-            ${thumbInner}
-            <div class="thumb-overlay">▶</div>
-           </a>`
-        : `<div class="card-thumb thumb-no-link" style="${thumbStyle}">
-            ${thumbInner}
-           </div>`;
-      const badge = getBadge(c.status);
-      return `
-        <div class="course-card">
-          ${thumbTag}
-          <div class="card-body">
-            <div class="card-platform">${c.platform}</div>
-            <div class="card-title">${c.name}</div>
-            <div class="card-progress-row">
-              <span class="card-pct">${c.progress || 0}%</span>
-              <span class="card-chapter">${c.chapter || ''}</span>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width:${c.progress||0}%;background:${getProgressColor(c.progress||0)};"></div>
-            </div>
-            <div class="card-footer">
-              ${badge}
-              <div class="card-actions">
-                <button class="card-btn" onclick="openModal('${c.id}')" title="編輯">✏️</button>
-                <button class="card-btn" onclick="deleteCourse('${c.id}')" title="刪除">🗑️</button>
-              </div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
+    return;
   }
+  empty.style.display = 'none';
+
+  var html = '';
+  for (var i = 0; i < visible.length; i++) {
+    var c = visible[i];
+    var info = platformInfo(c.platform);
+    var thumbContent = '';
+    if (c.img) {
+      thumbContent = '<img src="' + c.img + '" alt="" onerror="this.style.display=\'none\'">';
+    } else {
+      thumbContent = '<span class="thumb-icon">📖</span>';
+    }
+    var thumbStyle = c.img ? '' : 'background:' + info.bg + ';';
+    var thumbHtml = '';
+    if (c.url) {
+      thumbHtml = '<a href="' + c.url + '" class="thumb" target="_blank" rel="noopener" style="' + thumbStyle + '">' + thumbContent + '<div class="play-overlay">▶</div></a>';
+    } else {
+      thumbHtml = '<div class="thumb" style="' + thumbStyle + '">' + thumbContent + '</div>';
+    }
+    var id = c.id;
+    html += '<div class="card">' +
+      thumbHtml +
+      '<div class="card-body">' +
+        '<div class="card-platform">' + c.platform + '</div>' +
+        '<div class="card-title">' + c.name + '</div>' +
+        '<div class="prog-row"><span class="prog-pct">' + (c.progress||0) + '%</span><span class="prog-ch">' + (c.chapter||'') + '</span></div>' +
+        '<div class="bar-bg"><div class="bar-fill" style="width:' + (c.progress||0) + '%;background:' + progColor(c.progress||0) + '"></div></div>' +
+        '<div class="card-foot">' +
+          badgeHtml(c.status) +
+          '<div class="card-actions">' +
+            '<button class="cbtn" onclick="openModal(\'' + id + '\')" title="編輯">✏️</button>' +
+            '<button class="cbtn" onclick="deleteCourse(\'' + id + '\')" title="刪除">🗑️</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  grid.innerHTML = html;
 }
 
 function setFilter(f, btn) {
-  filter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  currentFilter = f;
+  var btns = document.querySelectorAll('.fbtn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
+  btn.classList.add('on');
   render();
 }
 
-function setThumbPreview(imgUrl) {
-  const preview = document.getElementById('thumb-preview');
-  document.getElementById('f-img').value = imgUrl || '';
-  if (imgUrl) {
-    preview.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<span style=color:var(--color-text-tertiary);font-size:13px>封面載入失敗，請手動貼圖片網址</span>'">`;
-  } else {
-    preview.innerHTML = '尚未設定封面';
-  }
-}
-
-async function fetchThumb() {
-  const url = document.getElementById('f-url').value.trim();
-  if (!url) { alert('請先填入課程連結'); return; }
-  const btn = document.getElementById('fetch-btn');
-  btn.textContent = '抓取中...';
-  btn.disabled = true;
-  try {
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
-    const html = data.contents || '';
-    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    if (match && match[1]) {
-      setThumbPreview(match[1]);
-    } else {
-      alert('無法自動抓取封面，請右鍵複製圖片網址後手動填入');
-    }
-  } catch(e) {
-    alert('抓取失敗，請稍後再試或手動填入圖片網址');
-  } finally {
-    btn.textContent = '自動抓取封面';
-    btn.disabled = false;
-  }
-}
-
-
-
-const PRESETS = ['Udemy','Coursera','YouTube','hahow','Hiskio'];
-
-function toggleCustomPlatform(val) {
-  const ci = document.getElementById('f-platform-custom');
+function onPlatformChange(val) {
+  var ci = document.getElementById('f-custom');
   ci.style.display = val === '__other__' ? 'block' : 'none';
-  if (val === '__other__') ci.focus();
 }
 
-function setPlatformField(platform) {
-  const sel = document.getElementById('f-platform');
-  const ci = document.getElementById('f-platform-custom');
-  if (PRESETS.includes(platform)) {
+function setPlatform(platform) {
+  var sel = document.getElementById('f-platform');
+  var ci = document.getElementById('f-custom');
+  if (PRESETS.indexOf(platform) >= 0) {
     sel.value = platform;
     ci.style.display = 'none';
     ci.value = '';
   } else {
     sel.value = '__other__';
     ci.style.display = 'block';
-    ci.value = platform;
+    ci.value = platform || '';
   }
 }
 
-function getPlatformValue() {
-  const sel = document.getElementById('f-platform');
+function getPlatform() {
+  var sel = document.getElementById('f-platform');
   if (sel.value === '__other__') {
-    return document.getElementById('f-platform-custom').value.trim() || '其他';
+    return document.getElementById('f-custom').value.trim() || '其他';
   }
   return sel.value;
+}
+
+function setPreview(imgUrl) {
+  var box = document.getElementById('preview');
+  document.getElementById('f-img').value = imgUrl || '';
+  if (imgUrl) {
+    box.innerHTML = '<img src="' + imgUrl + '" onerror="this.parentNode.textContent=\'圖片載入失敗\'">';
+  } else {
+    box.textContent = '尚未設定封面';
+  }
+}
+
+function doFetch() {
+  var url = document.getElementById('f-url').value.trim();
+  if (!url) { alert('請先填入課程連結'); return; }
+  var btn = document.getElementById('fetch-btn');
+  btn.textContent = '抓取中...';
+  btn.disabled = true;
+  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+  fetch(proxy)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var html = data.contents || '';
+      var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+             || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      if (m && m[1]) {
+        setPreview(m[1]);
+      } else {
+        alert('無法自動抓取封面，請右鍵複製課程封面圖片網址後手動填入');
+      }
+    })
+    .catch(function(){ alert('抓取失敗，請稍後再試'); })
+    .finally(function(){
+      btn.textContent = '自動抓取封面';
+      btn.disabled = false;
+    });
 }
 
 function openModal(id) {
   editingId = id || null;
   document.getElementById('modal-title').textContent = id ? '編輯課程' : '新增課程';
   if (id) {
-    const c = courses.find(x => x.id === id);
-    document.getElementById('f-name').value = c.name;
-    setPlatformField(c.platform);
-    document.getElementById('f-status').value = c.status;
+    var c = null;
+    for (var i = 0; i < courses.length; i++) { if (courses[i].id === id) { c = courses[i]; break; } }
+    if (!c) return;
+    document.getElementById('f-name').value = c.name || '';
+    setPlatform(c.platform || 'Udemy');
+    document.getElementById('f-status').value = c.status || 'todo';
     document.getElementById('f-progress').value = c.progress || 0;
     document.getElementById('f-chapter').value = c.chapter || '';
     document.getElementById('f-url').value = c.url || '';
-    setThumbPreview(c.img || '');
+    setPreview(c.img || '');
   } else {
     document.getElementById('f-name').value = '';
-    setPlatformField('Udemy');
+    setPlatform('Udemy');
     document.getElementById('f-status').value = 'todo';
     document.getElementById('f-progress').value = 0;
     document.getElementById('f-chapter').value = '';
     document.getElementById('f-url').value = '';
-    setThumbPreview('');
+    setPreview('');
   }
-  document.getElementById('modal').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
   document.getElementById('f-name').focus();
 }
 
 function closeModal() {
-  document.getElementById('modal').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
 }
 
-function handleOverlay(e) {
-  if (e.target === document.getElementById('modal')) closeModal();
-}
+document.getElementById('overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 
 function saveCourse() {
-  const name = document.getElementById('f-name').value.trim();
+  var name = document.getElementById('f-name').value.trim();
   if (!name) { alert('請輸入課程名稱'); return; }
-  const data = {
-    id: editingId || Date.now().toString(),
-    name,
-    platform: getPlatformValue(),
+  var data = {
+    id: editingId || String(Date.now()),
+    name: name,
+    platform: getPlatform(),
     status: document.getElementById('f-status').value,
     progress: Math.min(100, Math.max(0, parseInt(document.getElementById('f-progress').value) || 0)),
     chapter: document.getElementById('f-chapter').value.trim(),
     url: document.getElementById('f-url').value.trim(),
-    img: document.getElementById('f-img').value.trim(),
+    img: document.getElementById('f-img').value.trim()
   };
   if (editingId) {
-    courses = courses.map(c => c.id === editingId ? data : c);
+    for (var i = 0; i < courses.length; i++) {
+      if (courses[i].id === editingId) { courses[i] = data; break; }
+    }
   } else {
     courses.push(data);
   }
@@ -660,7 +443,7 @@ function saveCourse() {
 
 function deleteCourse(id) {
   if (!confirm('確定要刪除這個課程嗎？')) return;
-  courses = courses.filter(c => c.id !== id);
+  courses = courses.filter(function(c){ return c.id !== id; });
   save();
   render();
 }
