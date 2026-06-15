@@ -452,23 +452,28 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     pg.querySelector('#pg-next').addEventListener('click',function(){ if(currentPage<totalPages){ currentPage++; render(); } });
     pg.querySelectorAll('[data-page]').forEach(function(btn){
       btn.addEventListener('click',function(){ currentPage=parseInt(this.getAttribute('data-page')); render(); });
-      btn.addEventListener('dragover',function(e){
+      btn.addEventListener('dragenter',function(e){
         e.preventDefault();
-        e.dataTransfer.dropEffect='move';
-        this.style.transform='scale(1.2)';
-        startAutoFlipTo(parseInt(this.getAttribute('data-page')));
+        var page=parseInt(this.getAttribute('data-page'));
+        if(page===currentPage) return;
+        this.style.transform='scale(1.25)';
+        this.style.background='var(--tx)';
+        this.style.color='var(--bg)';
+        clearAutoFlip();
+        autoFlipTimer=setTimeout(function(){
+          currentPage=page;
+          dragSrcIdx=null;
+          render();
+        },600);
       });
       btn.addEventListener('dragleave',function(){
         this.style.transform='';
+        this.style.background='';
+        this.style.color='';
         clearAutoFlip();
       });
-      btn.addEventListener('drop',function(e){
-        e.preventDefault();
-        this.style.transform='';
-        var page=parseInt(this.getAttribute('data-page'));
-        currentPage=page;
-        render();
-      });
+      btn.addEventListener('dragover',function(e){ e.preventDefault(); });
+      btn.addEventListener('drop',function(e){ e.preventDefault(); });
     });
   }
 
