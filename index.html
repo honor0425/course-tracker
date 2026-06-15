@@ -249,8 +249,18 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     var oth=document.createElement('option');
     oth.value='__other__'; oth.textContent='其他...'; sel.appendChild(oth);
     if(current){
-      if(platforms.indexOf(current)>=0) sel.value=current;
-      else { sel.value='__other__'; document.getElementById('f-custom').style.display='block'; document.getElementById('f-custom').value=current; }
+      if(platforms.indexOf(current)>=0){
+        sel.value=current;
+        document.getElementById('f-custom').style.display='none';
+        document.getElementById('f-custom').value='';
+      } else {
+        sel.value='__other__';
+        document.getElementById('f-custom').style.display='block';
+        document.getElementById('f-custom').value=current;
+      }
+    } else {
+      document.getElementById('f-custom').style.display='none';
+      document.getElementById('f-custom').value='';
     }
     // Re-bind change event every time select is rebuilt
     sel.onchange = function(){
@@ -489,8 +499,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       buildPlatformSelect('Udemy');
       document.getElementById('f-custom').style.display='none';
       document.getElementById('f-custom').value='';
-      document.getElementById('f-status').value='todo';
-      document.getElementById('f-progress').value=0;
+      document.getElementById('f-status').value='todo';      document.getElementById('f-progress').value=0;
       document.getElementById('f-chapter').value='';
       document.getElementById('f-url').value='';
       document.getElementById('f-img-manual').value='';
