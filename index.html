@@ -9,7 +9,7 @@
 :root{--bg:#fff;--bg2:#f5f5f3;--bg3:#f0efeb;--tx:#1a1a18;--tx2:#6b6b67;--tx3:#9b9b96;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--r:8px;--rl:12px}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--tx:#f0efe9;--tx2:#a8a8a2;--tx3:#6b6b67;--bd:rgba(255,255,255,.10);--bd2:rgba(255,255,255,.18)}}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg3);color:var(--tx);min-height:100vh;padding:2rem 1rem}
-.wrap{max-width:900px;margin:0 auto}
+.wrap{max-width:920px;margin:0 auto}
 h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:center;gap:10px}
 .sync{font-size:12px;color:var(--tx3);font-weight:400}
 .sec-label{font-size:11px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
@@ -26,7 +26,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
 .fbtn.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .add-btn{margin-left:auto;font-size:13px;padding:6px 16px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg);color:var(--tx);cursor:pointer}
 .add-btn:hover{background:var(--bg2)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .card{background:var(--bg);border:.5px solid var(--bd);border-radius:var(--rl);overflow:hidden;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--bd2);transform:translateY(-2px)}
 .thumb{width:100%;height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;text-decoration:none}
@@ -46,10 +46,19 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
 .b-doing{background:#E6F1FB;color:#185FA5}
 .b-done{background:#EAF3DE;color:#3B6D11}
 @media(prefers-color-scheme:dark){.b-todo{background:#2e2d29;color:#a8a8a0}.b-doing{background:#0c2340;color:#6aadee}.b-done{background:#152810;color:#7ec95a}}
-.card-acts{display:flex;gap:4px}
-.cbtn{width:28px;height:28px;border-radius:var(--r);border:.5px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.card-acts{display:flex;gap:3px}
+.cbtn{width:26px;height:26px;border-radius:var(--r);border:.5px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
 .cbtn:hover{background:var(--bg2)}
+.cbtn:disabled{opacity:.25;cursor:default}
 .empty{text-align:center;padding:3rem 1rem;color:var(--tx3);font-size:14px;display:none}
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:1.5rem}
+.pg-btn{width:32px;height:32px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg);color:var(--tx2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
+.pg-btn:hover{background:var(--bg2)}
+.pg-btn.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.pg-btn:disabled{opacity:.3;cursor:default}
+.pg-info{font-size:12px;color:var(--tx3)}
+/* Modal */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:100}
 .overlay.open{display:flex}
 .modal{background:var(--bg);border:.5px solid var(--bd2);border-radius:var(--rl);padding:1.5rem;width:420px;max-width:calc(100vw - 2rem);max-height:90vh;overflow-y:auto}
@@ -93,6 +102,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   </div>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty">還沒有課程，點右上角「新增課程」開始追蹤吧！</div>
+  <div class="pagination" id="pagination"></div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -102,10 +112,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     <div class="frow">
       <div class="fg">
         <label class="fl">平台</label>
-        <select id="f-platform">
-          <option>Udemy</option><option>Coursera</option><option>YouTube</option>
-          <option>hahow</option><option>pressplay</option><option value="__other__">其他...</option>
-        </select>
+        <select id="f-platform"></select>
         <input type="text" id="f-custom" placeholder="輸入平台名稱" style="margin-top:6px;display:none">
       </div>
       <div class="fg"><label class="fl">狀態</label>
@@ -125,10 +132,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       <input type="hidden" id="f-img">
       <div class="img-btns">
         <button class="img-btn" id="fetch-btn">🔍 自動抓取</button>
-        <label class="img-btn">
-          📁 從電腦上傳
-          <input type="file" id="f-img-upload" accept="image/*" style="display:none">
-        </label>
+        <label class="img-btn">📁 從電腦上傳<input type="file" id="f-img-upload" accept="image/*" style="display:none"></label>
       </div>
       <div class="hint">💡 抓取失敗時，截圖課程封面後點「從電腦上傳」</div>
       <input type="url" id="f-img-manual" placeholder="或手動貼上圖片網址" style="margin-top:6px">
@@ -147,128 +151,128 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   var API = 'https://script.google.com/macros/s/AKfycbwvgvHGhqdEgS05vi8Xp__L0h4mraUzpDkuaLSpW6kXVicNKUS8DZFFSTrdiwOa2VIbTA/exec';
   var TOKEN = 'honor0425-secret-2026';
   var LOCAL_KEY = 'course-tracker-v1';
-  var MIGRATED_KEY = 'course-tracker-migrated';
-  var PRESETS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
+  var PER_PAGE = 8;
+  var DEFAULT_PLATFORMS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
 
   var courses = [];
   var filter = 'all';
   var editingId = null;
+  var currentPage = 1;
 
+  // --- Platform management ---
+  function getPlatforms() {
+    var extra = [];
+    try { extra = JSON.parse(localStorage.getItem('ct-platforms')) || []; } catch(e) {}
+    var all = DEFAULT_PLATFORMS.slice();
+    extra.forEach(function(p){ if(all.indexOf(p)<0) all.push(p); });
+    return all;
+  }
+
+  function savePlatform(p) {
+    if(DEFAULT_PLATFORMS.indexOf(p)>=0 || p==='其他') return;
+    var extra = [];
+    try { extra = JSON.parse(localStorage.getItem('ct-platforms')) || []; } catch(e) {}
+    if(extra.indexOf(p)<0){ extra.push(p); localStorage.setItem('ct-platforms', JSON.stringify(extra)); }
+  }
+
+  function buildPlatformSelect(current) {
+    var sel = document.getElementById('f-platform');
+    var platforms = getPlatforms();
+    sel.innerHTML = '';
+    platforms.forEach(function(p){
+      var o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      sel.appendChild(o);
+    });
+    var other = document.createElement('option');
+    other.value = '__other__'; other.textContent = '其他...';
+    sel.appendChild(other);
+    if(current) sel.value = (platforms.indexOf(current)>=0) ? current : '__other__';
+  }
+
+  // --- Toast & sync ---
   function toast(msg) {
-    var el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(function(){ el.classList.remove('show'); }, 2500);
+    var el=document.getElementById('toast');
+    el.textContent=msg; el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); },2500);
   }
+  function sync(msg){ document.getElementById('sync-status').textContent=msg; }
 
-  function sync(msg) { document.getElementById('sync-status').textContent = msg; }
-
+  // --- API ---
   function apiGet() {
-    return fetch(API + '?token=' + TOKEN)
-      .then(function(r){ return r.json(); });
+    return fetch(API+'?token='+TOKEN).then(function(r){ return r.json(); });
   }
-
   function apiSave(data) {
-    // Strip base64 images before saving to sheet (too large for URL)
-    var stripped = data.map(function(c) {
-      var copy = {};
-      for (var k in c) copy[k] = c[k];
-      if (copy.img && copy.img.indexOf('data:') === 0) copy.img = '';
+    var stripped = data.map(function(c){
+      var copy={}; for(var k in c) copy[k]=c[k];
+      if(copy.img && copy.img.indexOf('data:')===0) copy.img='';
       return copy;
     });
-    return fetch(API, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ token: TOKEN, action: 'save', courses: stripped })
+    return fetch(API,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({token:TOKEN,action:'save',courses:stripped})
     });
   }
+  function saveLocal(){ try{ localStorage.setItem(LOCAL_KEY,JSON.stringify(courses)); }catch(e){} }
 
-  function saveLocal() {
-    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(courses)); } catch(e) {}
-  }
-
+  // --- Init ---
   function init() {
     sync('⏳ 載入中...');
-    var local = null;
-    try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) {}
-
-    apiGet().then(function(data) {
-      if (Array.isArray(data)) {
-        if (data.length > 0) {
-          // 試算表有資料，直接用
-          courses = data;
-          courses.forEach(function(c){ c.progress = parseInt(c.progress)||0; });
-          sync('✅ 已同步');
-          render();
-        } else if (local && local.length > 0) {
-          // 試算表空的，localStorage 有資料 → 匯入
-          courses = local;
+    var local=null;
+    try{ local=JSON.parse(localStorage.getItem(LOCAL_KEY)); }catch(e){}
+    apiGet().then(function(data){
+      if(Array.isArray(data)){
+        if(data.length>0){
+          courses=data;
+          courses.forEach(function(c){ c.progress=parseInt(c.progress)||0; });
+          sync('✅ 已同步'); render();
+        } else if(local && local.length>0){
+          courses=local;
           sync('⏳ 匯入舊資料...');
-          apiSave(local).then(function() {
+          apiSave(local).then(function(){
             localStorage.removeItem(LOCAL_KEY);
-            toast('✅ 舊資料已匯入 Google 試算表！');
-            sync('✅ 已同步');
-          }).catch(function(){ sync('⚠️ 匯入失敗，資料仍在本機'); });
+            toast('✅ 舊資料已匯入！'); sync('✅ 已同步');
+          }).catch(function(){ sync('⚠️ 匯入失敗'); });
           render();
         } else {
-          // 全新開始
-          courses = [];
-          sync('✅ 已同步');
-          render();
+          courses=[]; sync('✅ 已同步'); render();
         }
-      } else {
-        throw new Error('invalid');
-      }
-    }).catch(function() {
-      courses = local || [];
-      sync('⚠️ 離線模式');
-      render();
+      } else { throw new Error(); }
+    }).catch(function(){
+      courses=local||[]; sync('⚠️ 離線模式'); render();
     });
   }
 
-  function doSave() {
-    saveLocal();
-    render();
-    sync('⏳ 儲存中...');
-    apiSave(courses).then(function() {
-      sync('✅ 已同步');
-      toast('✅ 已儲存');
-    }).catch(function() {
-      sync('⚠️ 雲端儲存失敗（本機已儲存）');
-      toast('⚠️ 雲端連線失敗，資料已存在本機');
-    });
+  function doSave(){
+    saveLocal(); render(); sync('⏳ 儲存中...');
+    apiSave(courses).then(function(){ sync('✅ 已同步'); toast('✅ 已儲存'); })
+      .catch(function(){ sync('⚠️ 雲端失敗（本機已儲存）'); toast('⚠️ 本機已儲存'); });
   }
 
-  function progColor(p) {
-    if (p>=100) return '#639922';
-    if (p>=50) return '#185FA5';
-    if (p>0) return '#BA7517';
-    return '#888780';
+  // --- Helpers ---
+  function progColor(p){
+    if(p>=100) return '#639922'; if(p>=50) return '#185FA5';
+    if(p>0) return '#BA7517'; return '#888780';
   }
-
-  function platBg(p) {
+  function platBg(p){
     var n=(p||'').toLowerCase();
-    if(n==='udemy') return '#a435f0';
-    if(n==='coursera') return '#0056d2';
-    if(n==='youtube') return '#ff0000';
-    if(n==='hahow') return '#f65858';
-    if(n==='pressplay') return '#1a1a2e';
-    return '#6b6b67';
+    if(n==='udemy') return '#a435f0'; if(n==='coursera') return '#0056d2';
+    if(n==='youtube') return '#ff0000'; if(n==='hahow') return '#f65858';
+    if(n==='pressplay') return '#1a1a2e'; return '#6b6b67';
   }
-
-  function badgeHtml(s) {
+  function badgeHtml(s){
     if(s==='done') return '<span class="badge b-done">✓ 已完成</span>';
     if(s==='doing') return '<span class="badge b-doing">▶ 進行中</span>';
     return '<span class="badge b-todo">○ 未開始</span>';
   }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  function esc(s) {
-    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  // --- Render ---
+  function getVisible(){ return filter==='all'?courses:courses.filter(function(c){ return c.status===filter; }); }
 
-  function render() {
-    var visible = filter==='all' ? courses : courses.filter(function(c){ return c.status===filter; });
+  function render(){
+    var visible=getVisible();
     var total=courses.length;
     var done=courses.filter(function(c){ return c.status==='done'; }).length;
     var doing=courses.filter(function(c){ return c.status==='doing'; }).length;
@@ -279,14 +283,21 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     document.getElementById('s-doing').textContent=doing;
     document.getElementById('s-done').textContent=done;
 
+    var totalPages=Math.max(1,Math.ceil(visible.length/PER_PAGE));
+    if(currentPage>totalPages) currentPage=totalPages;
+    var start=(currentPage-1)*PER_PAGE;
+    var pageItems=visible.slice(start,start+PER_PAGE);
+
     var grid=document.getElementById('grid');
     var empty=document.getElementById('empty');
-    if(visible.length===0){ grid.innerHTML=''; empty.style.display='block'; return; }
+
+    if(visible.length===0){ grid.innerHTML=''; empty.style.display='block'; renderPagination(0,0); return; }
     empty.style.display='none';
 
     var html='';
-    for(var i=0;i<visible.length;i++){
-      var c=visible[i];
+    for(var i=0;i<pageItems.length;i++){
+      var c=pageItems[i];
+      var globalIdx=courses.indexOf(c);
       var bg=platBg(c.platform);
       var inner=c.img?'<img src="'+esc(c.img)+'" alt="" onerror="this.style.display=\'none\'">'
                      :'<span class="thumb-icon">📖</span>';
@@ -294,6 +305,8 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       var thumb=c.url
         ?'<a href="'+esc(c.url)+'" class="thumb" target="_blank" rel="noopener" style="'+style+'">'+inner+'<div class="play-ov">▶</div></a>'
         :'<div class="thumb" style="'+style+'">'+inner+'</div>';
+      var isFirst=globalIdx===0;
+      var isLast=globalIdx===courses.length-1;
       html+='<div class="card">'+thumb+
         '<div class="card-body">'+
         '<div class="card-plat">'+esc(c.platform)+'</div>'+
@@ -302,27 +315,70 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
         '<div class="bar-bg"><div class="bar-fill" style="width:'+(c.progress||0)+'%;background:'+progColor(c.progress||0)+'"></div></div>'+
         '<div class="card-foot">'+badgeHtml(c.status)+
         '<div class="card-acts">'+
+        '<button class="cbtn" data-up="'+globalIdx+'" title="往前移"'+(isFirst?' disabled':'')+'>▲</button>'+
+        '<button class="cbtn" data-down="'+globalIdx+'" title="往後移"'+(isLast?' disabled':'')+'>▼</button>'+
         '<button class="cbtn" data-edit="'+esc(c.id)+'" title="編輯">✏️</button>'+
         '<button class="cbtn" data-del="'+esc(c.id)+'" title="刪除">🗑️</button>'+
         '</div></div></div></div>';
     }
     grid.innerHTML=html;
+
+    grid.querySelectorAll('[data-up]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.getAttribute('data-up'));
+        if(idx>0){ var tmp=courses[idx-1]; courses[idx-1]=courses[idx]; courses[idx]=tmp; doSave(); }
+      });
+    });
+    grid.querySelectorAll('[data-down]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.getAttribute('data-down'));
+        if(idx<courses.length-1){ var tmp=courses[idx+1]; courses[idx+1]=courses[idx]; courses[idx]=tmp; doSave(); }
+      });
+    });
     grid.querySelectorAll('[data-edit]').forEach(function(btn){
       btn.addEventListener('click',function(){ openModal(this.getAttribute('data-edit')); });
     });
     grid.querySelectorAll('[data-del]').forEach(function(btn){
       btn.addEventListener('click',function(){ deleteCourse(this.getAttribute('data-del')); });
     });
+
+    renderPagination(totalPages, visible.length);
   }
 
-  function setPreview(url) {
+  function renderPagination(totalPages, total){
+    var pg=document.getElementById('pagination');
+    if(totalPages<=1){ pg.innerHTML=''; return; }
+    var html='';
+    html+='<button class="pg-btn" id="pg-prev">‹</button>';
+    for(var i=1;i<=totalPages;i++){
+      html+='<button class="pg-btn'+(i===currentPage?' on':'')+'" data-page="'+i+'">'+i+'</button>';
+    }
+    html+='<button class="pg-btn" id="pg-next">›</button>';
+    html+='<span class="pg-info">共 '+total+' 筆</span>';
+    pg.innerHTML=html;
+
+    pg.querySelector('#pg-prev').addEventListener('click',function(){
+      if(currentPage>1){ currentPage--; render(); }
+    });
+    pg.querySelector('#pg-next').addEventListener('click',function(){
+      if(currentPage<totalPages){ currentPage++; render(); }
+    });
+    pg.querySelectorAll('[data-page]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        currentPage=parseInt(this.getAttribute('data-page')); render();
+      });
+    });
+  }
+
+  // --- Modal ---
+  function setPreview(url){
     var box=document.getElementById('preview');
     document.getElementById('f-img').value=url||'';
     if(url){ box.innerHTML='<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">'; }
     else{ box.textContent='尚未設定封面'; }
   }
 
-  function openModal(id) {
+  function openModal(id){
     editingId=id||null;
     document.getElementById('modal-title').textContent=id?'編輯課程':'新增課程';
     if(id){
@@ -330,7 +386,10 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       for(var i=0;i<courses.length;i++){ if(String(courses[i].id)===String(id)){ c=courses[i]; break; } }
       if(!c) return;
       document.getElementById('f-name').value=c.name||'';
-      setPlatform(c.platform||'Udemy');
+      buildPlatformSelect(c.platform);
+      var ci=document.getElementById('f-custom');
+      if(getPlatforms().indexOf(c.platform)<0 && c.platform){ ci.style.display='block'; ci.value=c.platform; }
+      else{ ci.style.display='none'; ci.value=''; }
       document.getElementById('f-status').value=c.status||'todo';
       document.getElementById('f-progress').value=c.progress||0;
       document.getElementById('f-chapter').value=c.chapter||'';
@@ -339,7 +398,9 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       setPreview(c.img||'');
     } else {
       document.getElementById('f-name').value='';
-      setPlatform('Udemy');
+      buildPlatformSelect('Udemy');
+      document.getElementById('f-custom').style.display='none';
+      document.getElementById('f-custom').value='';
       document.getElementById('f-status').value='todo';
       document.getElementById('f-progress').value=0;
       document.getElementById('f-chapter').value='';
@@ -353,13 +414,6 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
 
   function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
 
-  function setPlatform(p){
-    var sel=document.getElementById('f-platform');
-    var ci=document.getElementById('f-custom');
-    if(PRESETS.indexOf(p)>=0){ sel.value=p; ci.style.display='none'; ci.value=''; }
-    else{ sel.value='__other__'; ci.style.display='block'; ci.value=p||''; }
-  }
-
   function getPlatform(){
     var sel=document.getElementById('f-platform');
     if(sel.value==='__other__') return document.getElementById('f-custom').value.trim()||'其他';
@@ -371,23 +425,21 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     if(!name){ alert('請輸入課程名稱'); return; }
     var manualImg=document.getElementById('f-img-manual').value.trim();
     if(manualImg) setPreview(manualImg);
+    var platform=getPlatform();
+    savePlatform(platform);
     var data={
-      id: editingId||String(Date.now()),
-      name: name,
-      platform: getPlatform(),
-      status: document.getElementById('f-status').value,
-      progress: Math.min(100,Math.max(0,parseInt(document.getElementById('f-progress').value)||0)),
-      chapter: document.getElementById('f-chapter').value.trim(),
-      url: document.getElementById('f-url').value.trim(),
-      img: document.getElementById('f-img').value.trim()
+      id:editingId||String(Date.now()),
+      name:name, platform:platform,
+      status:document.getElementById('f-status').value,
+      progress:Math.min(100,Math.max(0,parseInt(document.getElementById('f-progress').value)||0)),
+      chapter:document.getElementById('f-chapter').value.trim(),
+      url:document.getElementById('f-url').value.trim(),
+      img:document.getElementById('f-img').value.trim()
     };
     if(editingId){
       for(var i=0;i<courses.length;i++){ if(String(courses[i].id)===String(editingId)){ courses[i]=data; break; } }
-    } else {
-      courses.push(data);
-    }
-    closeModal();
-    doSave();
+    } else { courses.push(data); }
+    closeModal(); doSave();
   }
 
   function deleteCourse(id){
@@ -396,12 +448,14 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     doSave();
   }
 
+  // --- Events ---
   document.getElementById('btn-add').addEventListener('click',function(){ openModal(null); });
   document.getElementById('btn-cancel').addEventListener('click',closeModal);
   document.getElementById('btn-save').addEventListener('click',saveCourse);
   document.getElementById('overlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
   document.getElementById('f-platform').addEventListener('change',function(){
-    document.getElementById('f-custom').style.display=this.value==='__other__'?'block':'none';
+    var ci=document.getElementById('f-custom');
+    ci.style.display=this.value==='__other__'?'block':'none';
   });
   document.getElementById('f-img-manual').addEventListener('input',function(){
     var val=this.value.trim(); if(val) setPreview(val);
@@ -431,6 +485,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
       document.querySelectorAll('.fbtn').forEach(function(b){ b.classList.remove('on'); });
       this.classList.add('on');
       filter=this.getAttribute('data-filter');
+      currentPage=1;
       render();
     });
   });
