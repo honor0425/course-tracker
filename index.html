@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>課程追蹤板</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -160,15 +160,15 @@
   .thumb-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.18);
+    background: rgba(0,0,0,0.22);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.15s;
-    border-radius: 0;
+    font-size: 32px;
+    color: #fff;
   }
-  .thumb-overlay i { font-size: 28px; color: #fff; }
   .thumb-no-link {
     cursor: default;
   }
@@ -406,6 +406,10 @@
       <label class="form-label">課程連結（選填）</label>
       <input type="url" id="f-url" placeholder="https://...">
     </div>
+    <div class="form-group">
+      <label class="form-label">縮圖網址（選填，貼課程封面圖片網址）</label>
+      <input type="url" id="f-img" placeholder="https://...封面圖片網址...">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn-primary" onclick="saveCourse()">儲存</button>
@@ -446,13 +450,13 @@ function getBadge(status) {
 }
 
 function getPlatformStyle(platform) {
-  const p = platform.toLowerCase();
-  if (p === 'udemy') return { bg: '#a435f0', emoji: '🎓' };
-  if (p === 'coursera') return { bg: '#0056d2', emoji: '🎓' };
-  if (p === 'youtube') return { bg: '#ff0000', emoji: '▶️' };
-  if (p === 'hahow') return { bg: '#f65858', emoji: '📚' };
-  if (p === 'hiskio') return { bg: '#1565c0', emoji: '💻' };
-  return { bg: '#555', emoji: '📖' };
+  const p = (platform || '').toLowerCase();
+  if (p === 'udemy') return { bg: '#a435f0', favicon: 'https://www.udemy.com/favicon.ico' };
+  if (p === 'coursera') return { bg: '#0056d2', favicon: 'https://www.coursera.org/favicon.ico' };
+  if (p === 'youtube') return { bg: '#ff0000', favicon: 'https://www.youtube.com/favicon.ico' };
+  if (p === 'hahow') return { bg: '#f65858', favicon: 'https://hahow.in/favicon.ico' };
+  if (p === 'hiskio') return { bg: '#1565c0', favicon: 'https://hiskio.com/favicon.ico' };
+  return { bg: '#6b6b67', favicon: null };
 }
 
 function render() {
@@ -478,13 +482,19 @@ function render() {
     empty.style.display = 'none';
     container.innerHTML = visible.map(c => {
       const ps = getPlatformStyle(c.platform);
+      const thumbInner = c.img
+        ? `<img src="${c.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextSibling.style.display='flex';" alt=""><div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:36px;">📖</div>`
+        : ps.favicon
+          ? `<img src="${ps.favicon}" style="width:56px;height:56px;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block';" alt="${c.platform}"><span style="display:none;font-size:36px;">📖</span>`
+          : `<span style="font-size:36px;">📖</span>`;
+      const thumbStyle = c.img ? '' : `background:${ps.bg};`;
       const thumbTag = c.url
-        ? `<a href="${c.url}" class="card-thumb" target="_blank" rel="noopener" style="background:${ps.bg};" title="點擊開始上課">
-            <span style="font-size:38px;">${ps.emoji}</span>
-            <div class="thumb-overlay"><i class="ti ti-player-play" aria-hidden="true"></i></div>
+        ? `<a href="${c.url}" class="card-thumb" target="_blank" rel="noopener" style="${thumbStyle}" title="點擊開始上課">
+            ${thumbInner}
+            <div class="thumb-overlay">▶</div>
            </a>`
-        : `<div class="card-thumb thumb-no-link" style="background:${ps.bg};">
-            <span style="font-size:38px;">${ps.emoji}</span>
+        : `<div class="card-thumb thumb-no-link" style="${thumbStyle}">
+            ${thumbInner}
            </div>`;
       const badge = getBadge(c.status);
       return `
@@ -503,8 +513,8 @@ function render() {
             <div class="card-footer">
               ${badge}
               <div class="card-actions">
-                <button class="card-btn" onclick="openModal('${c.id}')" title="編輯"><i class="ti ti-edit" aria-hidden="true"></i></button>
-                <button class="card-btn" onclick="deleteCourse('${c.id}')" title="刪除"><i class="ti ti-trash" aria-hidden="true"></i></button>
+                <button class="card-btn" onclick="openModal('${c.id}')" title="編輯">✏️</button>
+                <button class="card-btn" onclick="deleteCourse('${c.id}')" title="刪除">🗑️</button>
               </div>
             </div>
           </div>
@@ -561,6 +571,7 @@ function openModal(id) {
     document.getElementById('f-progress').value = c.progress || 0;
     document.getElementById('f-chapter').value = c.chapter || '';
     document.getElementById('f-url').value = c.url || '';
+    document.getElementById('f-img').value = c.img || '';
   } else {
     document.getElementById('f-name').value = '';
     setPlatformField('Udemy');
@@ -568,6 +579,7 @@ function openModal(id) {
     document.getElementById('f-progress').value = 0;
     document.getElementById('f-chapter').value = '';
     document.getElementById('f-url').value = '';
+    document.getElementById('f-img').value = '';
   }
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-name').focus();
@@ -592,6 +604,7 @@ function saveCourse() {
     progress: Math.min(100, Math.max(0, parseInt(document.getElementById('f-progress').value) || 0)),
     chapter: document.getElementById('f-chapter').value.trim(),
     url: document.getElementById('f-url').value.trim(),
+    img: document.getElementById('f-img').value.trim(),
   };
   if (editingId) {
     courses = courses.map(c => c.id === editingId ? data : c);
