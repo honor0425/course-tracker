@@ -175,7 +175,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   var LOCAL_KEY = 'course-tracker-v1';
   var PLAT_KEY = 'ct-platforms';
   var PER_PAGE = 8;
-  var DEFAULT_PLATFORMS = ['hahow','pressplay'];
+  var DEFAULT_PLATFORMS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
 
   var courses = [];
   var filter = 'all';
@@ -523,10 +523,10 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
   // Edge-based auto page flip during drag
   document.addEventListener('dragover',function(e){
     if(dragSrcIdx===null) return;
-    var y=e.clientY;
-    var h=window.innerHeight;
-    if(y<EDGE){ startAutoFlip('prev'); }
-    else if(y>h-EDGE){ startAutoFlip('next'); }
+    var x=e.clientX;
+    var w=window.innerWidth;
+    if(x<EDGE){ startAutoFlip('prev'); }
+    else if(x>w-EDGE){ startAutoFlip('next'); }
     else{ clearAutoFlip(); }
   });
   document.addEventListener('dragend',function(){ clearAutoFlip(); });
