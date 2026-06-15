@@ -10,7 +10,8 @@
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--tx:#f0efe9;--tx2:#a8a8a2;--tx3:#6b6b67;--bd:rgba(255,255,255,.10);--bd2:rgba(255,255,255,.18)}}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg3);color:var(--tx);min-height:100vh;padding:2rem 1rem}
 .wrap{max-width:900px;margin:0 auto}
-h1{font-size:20px;font-weight:500;margin-bottom:2rem}
+h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:center;gap:10px}
+.sync{font-size:12px;color:var(--tx3);font-weight:400}
 .sec-label{font-size:11px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
 @media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
@@ -59,25 +60,23 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 .fg input:focus,.fg select:focus{border-color:var(--tx2)}
 .frow{display:flex;gap:8px}
 .frow .fg{flex:1}
-.url-row{display:flex;gap:6px}
-.url-row input{flex:1}
-.fetch-btn{padding:7px 10px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0}
-.fetch-btn:disabled{opacity:.5;cursor:default}
 .prev-box{width:100%;height:110px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--tx3);font-size:13px;margin-top:8px}
 .prev-box img{width:100%;height:100%;object-fit:cover}
-.hint{font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.5}
+.img-btns{display:flex;gap:6px;margin-top:8px}
+.img-btn{flex:1;padding:7px 6px;border-radius:var(--r);border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px}
+.img-btn:hover{background:var(--bg3)}
+.hint{font-size:11px;color:var(--tx3);margin-top:6px;line-height:1.5}
 .mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1.2rem}
 .btn-ok{background:var(--tx);color:var(--bg);border:none;font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
 .btn-no{background:transparent;color:var(--tx2);border:.5px solid var(--bd2);font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
 .btn-no:hover{background:var(--bg2)}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap}
 .toast.show{opacity:1}
-.sync-status{font-size:11px;color:var(--tx3);margin-left:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>📚 課程追蹤板 <span class="sync-status" id="sync-status"></span></h1>
+  <h1>📚 課程追蹤板 <span class="sync" id="sync-status"></span></h1>
   <div class="sec-label">總覽</div>
   <div class="stats">
     <div class="stat"><div class="stat-label">課程總數</div><div class="stat-val" id="s-total">0</div><div class="stat-sub">所有平台</div></div>
@@ -103,34 +102,41 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     <div class="frow">
       <div class="fg">
         <label class="fl">平台</label>
-        <select id="f-platform"><option>Udemy</option><option>Coursera</option><option>YouTube</option><option>hahow</option><option>pressplay</option><option value="__other__">其他...</option></select>
+        <select id="f-platform">
+          <option>Udemy</option><option>Coursera</option><option>YouTube</option>
+          <option>hahow</option><option>pressplay</option><option value="__other__">其他...</option>
+        </select>
         <input type="text" id="f-custom" placeholder="輸入平台名稱" style="margin-top:6px;display:none">
       </div>
-      <div class="fg"><label class="fl">狀態</label><select id="f-status"><option value="todo">未開始</option><option value="doing">進行中</option><option value="done">已完成</option></select></div>
+      <div class="fg"><label class="fl">狀態</label>
+        <select id="f-status">
+          <option value="todo">未開始</option><option value="doing">進行中</option><option value="done">已完成</option>
+        </select>
+      </div>
     </div>
     <div class="frow">
       <div class="fg"><label class="fl">進度 (%)</label><input type="number" id="f-progress" min="0" max="100" value="0"></div>
       <div class="fg"><label class="fl">章節（選填）</label><input type="text" id="f-chapter" placeholder="例：第 3 章"></div>
     </div>
-    <div class="fg">
-      <label class="fl">課程連結</label>
-      <input type="url" id="f-url" placeholder="https://...">
-    </div>
+    <div class="fg"><label class="fl">課程連結</label><input type="url" id="f-url" placeholder="https://..."></div>
     <div class="fg">
       <label class="fl">封面圖片</label>
       <div class="prev-box" id="preview">尚未設定封面</div>
       <input type="hidden" id="f-img">
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="fetch-btn" id="fetch-btn" style="flex:1">🔍 自動抓取封面</button>
-        <label class="fetch-btn" style="flex:1;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <div class="img-btns">
+        <button class="img-btn" id="fetch-btn">🔍 自動抓取</button>
+        <label class="img-btn">
           📁 從電腦上傳
           <input type="file" id="f-img-upload" accept="image/*" style="display:none">
         </label>
       </div>
-      <div class="hint">💡 自動抓取失敗時，截圖課程封面後點「從電腦上傳」</div>
+      <div class="hint">💡 抓取失敗時，截圖課程封面後點「從電腦上傳」</div>
       <input type="url" id="f-img-manual" placeholder="或手動貼上圖片網址" style="margin-top:6px">
     </div>
-    <div class="mfoot"><button class="btn-no" id="btn-cancel">取消</button><button class="btn-ok" id="btn-save">儲存</button></div>
+    <div class="mfoot">
+      <button class="btn-no" id="btn-cancel">取消</button>
+      <button class="btn-ok" id="btn-save">儲存</button>
+    </div>
   </div>
 </div>
 
@@ -138,111 +144,119 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 
 <script>
 (function() {
-  var API_URL = 'https://script.google.com/macros/s/AKfycbwvgvHGhqdEgS05vi8Xp__L0h4mraUzpDkuaLSpW6kXVicNKUS8DZFFSTrdiwOa2VIbTA/exec';
+  var API = 'https://script.google.com/macros/s/AKfycbwvgvHGhqdEgS05vi8Xp__L0h4mraUzpDkuaLSpW6kXVicNKUS8DZFFSTrdiwOa2VIbTA/exec';
   var TOKEN = 'honor0425-secret-2026';
   var LOCAL_KEY = 'course-tracker-v1';
   var MIGRATED_KEY = 'course-tracker-migrated';
+  var PRESETS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
 
   var courses = [];
   var filter = 'all';
   var editingId = null;
-  var PRESETS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
 
-  function showToast(msg) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); }, 2500);
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2500);
   }
 
-  function setSyncStatus(msg) {
-    document.getElementById('sync-status').textContent = msg;
-  }
+  function sync(msg) { document.getElementById('sync-status').textContent = msg; }
 
-  // --- API ---
   function apiGet() {
-    return fetch(API_URL + '?token=' + TOKEN)
+    return fetch(API + '?token=' + TOKEN)
       .then(function(r){ return r.json(); });
   }
 
   function apiSave(data) {
-    return fetch(API_URL, {
+    // Strip base64 images before saving to sheet (too large for URL)
+    var stripped = data.map(function(c) {
+      var copy = {};
+      for (var k in c) copy[k] = c[k];
+      if (copy.img && copy.img.indexOf('data:') === 0) copy.img = '';
+      return copy;
+    });
+    return fetch(API, {
       method: 'POST',
-      body: JSON.stringify({ token: TOKEN, action: 'save', courses: data })
-    }).then(function(r){ return r.json(); });
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ token: TOKEN, action: 'save', courses: stripped })
+    });
   }
 
-  // --- Init: migrate localStorage if needed ---
+  function saveLocal() {
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(courses)); } catch(e) {}
+  }
+
   function init() {
-    setSyncStatus('⏳ 載入中...');
-    var migrated = localStorage.getItem(MIGRATED_KEY);
+    sync('⏳ 載入中...');
     var local = null;
     try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) {}
+    var migrated = localStorage.getItem(MIGRATED_KEY);
 
-    if (!migrated && local && local.length > 0) {
-      // Has old local data — push to sheet first
-      setSyncStatus('⏳ 匯入舊資料...');
-      apiSave(local).then(function() {
-        localStorage.setItem(MIGRATED_KEY, '1');
-        localStorage.removeItem(LOCAL_KEY);
-        showToast('✅ 舊資料已匯入 Google 試算表！');
-        loadFromSheet();
-      }).catch(function() {
-        // Sheet unavailable, fall back to local
-        courses = local;
-        setSyncStatus('⚠️ 離線模式');
-        render();
-      });
-    } else {
-      loadFromSheet();
-    }
-  }
-
-  function loadFromSheet() {
     apiGet().then(function(data) {
-      courses = Array.isArray(data) ? data : [];
-      courses.forEach(function(c) { c.progress = parseInt(c.progress)||0; });
-      setSyncStatus('✅ 已同步');
-      render();
+      if (Array.isArray(data) && data.length > 0) {
+        courses = data;
+        courses.forEach(function(c){ c.progress = parseInt(c.progress)||0; });
+        localStorage.setItem(MIGRATED_KEY, '1');
+        sync('✅ 已同步');
+        render();
+      } else if (!migrated && local && local.length > 0) {
+        courses = local;
+        sync('⏳ 匯入舊資料...');
+        apiSave(local).then(function() {
+          localStorage.setItem(MIGRATED_KEY, '1');
+          toast('✅ 舊資料已匯入！');
+          sync('✅ 已同步');
+        }).catch(function(){
+          sync('⚠️ 匯入失敗');
+        });
+        render();
+      } else {
+        courses = local || [];
+        sync('✅ 已同步');
+        render();
+      }
     }).catch(function() {
-      setSyncStatus('⚠️ 無法連線，使用本機資料');
-      try { courses = JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch(e) { courses = []; }
+      courses = local || [];
+      sync('⚠️ 離線模式');
       render();
     });
   }
 
-  function saveToSheet() {
-    setSyncStatus('⏳ 儲存中...');
+  function doSave() {
+    saveLocal();
+    render();
+    sync('⏳ 儲存中...');
     apiSave(courses).then(function() {
-      setSyncStatus('✅ 已同步');
-      showToast('✅ 已儲存');
+      sync('✅ 已同步');
+      toast('✅ 已儲存');
     }).catch(function() {
-      setSyncStatus('⚠️ 儲存失敗');
-      showToast('⚠️ 儲存失敗，請檢查網路');
+      sync('⚠️ 雲端儲存失敗（本機已儲存）');
+      toast('⚠️ 雲端連線失敗，資料已存在本機');
     });
   }
 
-  // --- Render ---
   function progColor(p) {
-    if (p >= 100) return '#639922';
-    if (p >= 50) return '#185FA5';
-    if (p > 0) return '#BA7517';
+    if (p>=100) return '#639922';
+    if (p>=50) return '#185FA5';
+    if (p>0) return '#BA7517';
     return '#888780';
   }
 
   function platBg(p) {
-    var n = (p||'').toLowerCase();
-    if (n==='udemy') return '#a435f0';
-    if (n==='coursera') return '#0056d2';
-    if (n==='youtube') return '#ff0000';
-    if (n==='hahow') return '#f65858';
-    if (n==='pressplay') return '#1a1a2e';
+    var n=(p||'').toLowerCase();
+    if(n==='udemy') return '#a435f0';
+    if(n==='coursera') return '#0056d2';
+    if(n==='youtube') return '#ff0000';
+    if(n==='hahow') return '#f65858';
+    if(n==='pressplay') return '#1a1a2e';
     return '#6b6b67';
   }
 
   function badgeHtml(s) {
-    if (s==='done') return '<span class="badge b-done">✓ 已完成</span>';
-    if (s==='doing') return '<span class="badge b-doing">▶ 進行中</span>';
+    if(s==='done') return '<span class="badge b-done">✓ 已完成</span>';
+    if(s==='doing') return '<span class="badge b-doing">▶ 進行中</span>';
     return '<span class="badge b-todo">○ 未開始</span>';
   }
 
@@ -252,33 +266,32 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 
   function render() {
     var visible = filter==='all' ? courses : courses.filter(function(c){ return c.status===filter; });
-    var total = courses.length;
-    var done = courses.filter(function(c){ return c.status==='done'; }).length;
-    var doing = courses.filter(function(c){ return c.status==='doing'; }).length;
-    var avg = total ? Math.round(courses.reduce(function(s,c){ return s+(parseInt(c.progress)||0); },0)/total) : 0;
-    document.getElementById('s-total').textContent = total;
-    document.getElementById('s-rate').textContent = avg+'%';
-    document.getElementById('s-bar').style.width = avg+'%';
-    document.getElementById('s-doing').textContent = doing;
-    document.getElementById('s-done').textContent = done;
+    var total=courses.length;
+    var done=courses.filter(function(c){ return c.status==='done'; }).length;
+    var doing=courses.filter(function(c){ return c.status==='doing'; }).length;
+    var avg=total?Math.round(courses.reduce(function(s,c){ return s+(parseInt(c.progress)||0); },0)/total):0;
+    document.getElementById('s-total').textContent=total;
+    document.getElementById('s-rate').textContent=avg+'%';
+    document.getElementById('s-bar').style.width=avg+'%';
+    document.getElementById('s-doing').textContent=doing;
+    document.getElementById('s-done').textContent=done;
 
-    var grid = document.getElementById('grid');
-    var empty = document.getElementById('empty');
-    if (visible.length===0) { grid.innerHTML=''; empty.style.display='block'; return; }
+    var grid=document.getElementById('grid');
+    var empty=document.getElementById('empty');
+    if(visible.length===0){ grid.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
 
-    var html = '';
-    for (var i=0; i<visible.length; i++) {
-      var c = visible[i];
-      var bg = platBg(c.platform);
-      var inner = c.img
-        ? '<img src="'+esc(c.img)+'" alt="" onerror="this.style.display=\'none\'">'
-        : '<span class="thumb-icon">📖</span>';
-      var style = c.img ? '' : 'background:'+bg+';';
-      var thumb = c.url
-        ? '<a href="'+esc(c.url)+'" class="thumb" target="_blank" rel="noopener" style="'+style+'">'+inner+'<div class="play-ov">▶</div></a>'
-        : '<div class="thumb" style="'+style+'">'+inner+'</div>';
-      html += '<div class="card">'+thumb+
+    var html='';
+    for(var i=0;i<visible.length;i++){
+      var c=visible[i];
+      var bg=platBg(c.platform);
+      var inner=c.img?'<img src="'+esc(c.img)+'" alt="" onerror="this.style.display=\'none\'">'
+                     :'<span class="thumb-icon">📖</span>';
+      var style=c.img&&c.img.length>0?'':'background:'+bg+';';
+      var thumb=c.url
+        ?'<a href="'+esc(c.url)+'" class="thumb" target="_blank" rel="noopener" style="'+style+'">'+inner+'<div class="play-ov">▶</div></a>'
+        :'<div class="thumb" style="'+style+'">'+inner+'</div>';
+      html+='<div class="card">'+thumb+
         '<div class="card-body">'+
         '<div class="card-plat">'+esc(c.platform)+'</div>'+
         '<div class="card-title">'+esc(c.name)+'</div>'+
@@ -290,149 +303,131 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
         '<button class="cbtn" data-del="'+esc(c.id)+'" title="刪除">🗑️</button>'+
         '</div></div></div></div>';
     }
-    grid.innerHTML = html;
-
-    grid.querySelectorAll('[data-edit]').forEach(function(btn) {
-      btn.addEventListener('click', function() { openModal(this.getAttribute('data-edit')); });
+    grid.innerHTML=html;
+    grid.querySelectorAll('[data-edit]').forEach(function(btn){
+      btn.addEventListener('click',function(){ openModal(this.getAttribute('data-edit')); });
     });
-    grid.querySelectorAll('[data-del]').forEach(function(btn) {
-      btn.addEventListener('click', function() { deleteCourse(this.getAttribute('data-del')); });
+    grid.querySelectorAll('[data-del]').forEach(function(btn){
+      btn.addEventListener('click',function(){ deleteCourse(this.getAttribute('data-del')); });
     });
   }
 
-  // --- Modal ---
   function setPreview(url) {
-    var box = document.getElementById('preview');
-    document.getElementById('f-img').value = url||'';
-    if (url) { box.innerHTML = '<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">'; }
-    else { box.textContent = '尚未設定封面'; }
+    var box=document.getElementById('preview');
+    document.getElementById('f-img').value=url||'';
+    if(url){ box.innerHTML='<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">'; }
+    else{ box.textContent='尚未設定封面'; }
   }
 
   function openModal(id) {
-    editingId = id || null;
-    document.getElementById('modal-title').textContent = id ? '編輯課程' : '新增課程';
-    if (id) {
-      var c = null;
-      for (var i=0; i<courses.length; i++) { if (String(courses[i].id)===String(id)) { c=courses[i]; break; } }
-      if (!c) return;
-      document.getElementById('f-name').value = c.name||'';
+    editingId=id||null;
+    document.getElementById('modal-title').textContent=id?'編輯課程':'新增課程';
+    if(id){
+      var c=null;
+      for(var i=0;i<courses.length;i++){ if(String(courses[i].id)===String(id)){ c=courses[i]; break; } }
+      if(!c) return;
+      document.getElementById('f-name').value=c.name||'';
       setPlatform(c.platform||'Udemy');
-      document.getElementById('f-status').value = c.status||'todo';
-      document.getElementById('f-progress').value = c.progress||0;
-      document.getElementById('f-chapter').value = c.chapter||'';
-      document.getElementById('f-url').value = c.url||'';
-      document.getElementById('f-img-manual').value = c.img||'';
+      document.getElementById('f-status').value=c.status||'todo';
+      document.getElementById('f-progress').value=c.progress||0;
+      document.getElementById('f-chapter').value=c.chapter||'';
+      document.getElementById('f-url').value=c.url||'';
+      document.getElementById('f-img-manual').value='';
       setPreview(c.img||'');
     } else {
-      document.getElementById('f-name').value = '';
+      document.getElementById('f-name').value='';
       setPlatform('Udemy');
-      document.getElementById('f-status').value = 'todo';
-      document.getElementById('f-progress').value = 0;
-      document.getElementById('f-chapter').value = '';
-      document.getElementById('f-url').value = '';
-      document.getElementById('f-img-manual').value = '';
+      document.getElementById('f-status').value='todo';
+      document.getElementById('f-progress').value=0;
+      document.getElementById('f-chapter').value='';
+      document.getElementById('f-url').value='';
+      document.getElementById('f-img-manual').value='';
       setPreview('');
     }
     document.getElementById('overlay').classList.add('open');
-    setTimeout(function(){ document.getElementById('f-name').focus(); }, 50);
+    setTimeout(function(){ document.getElementById('f-name').focus(); },50);
   }
 
-  function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+  function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
 
-  function setPlatform(p) {
-    var sel = document.getElementById('f-platform');
-    var ci = document.getElementById('f-custom');
-    if (PRESETS.indexOf(p)>=0) { sel.value=p; ci.style.display='none'; ci.value=''; }
-    else { sel.value='__other__'; ci.style.display='block'; ci.value=p||''; }
+  function setPlatform(p){
+    var sel=document.getElementById('f-platform');
+    var ci=document.getElementById('f-custom');
+    if(PRESETS.indexOf(p)>=0){ sel.value=p; ci.style.display='none'; ci.value=''; }
+    else{ sel.value='__other__'; ci.style.display='block'; ci.value=p||''; }
   }
 
-  function getPlatform() {
-    var sel = document.getElementById('f-platform');
-    if (sel.value==='__other__') return document.getElementById('f-custom').value.trim()||'其他';
+  function getPlatform(){
+    var sel=document.getElementById('f-platform');
+    if(sel.value==='__other__') return document.getElementById('f-custom').value.trim()||'其他';
     return sel.value;
   }
 
-  function saveCourse() {
-    var name = document.getElementById('f-name').value.trim();
-    if (!name) { alert('請輸入課程名稱'); return; }
-    var manualImg = document.getElementById('f-img-manual').value.trim();
-    if (manualImg) setPreview(manualImg);
-    var data = {
-      id: editingId || String(Date.now()),
+  function saveCourse(){
+    var name=document.getElementById('f-name').value.trim();
+    if(!name){ alert('請輸入課程名稱'); return; }
+    var manualImg=document.getElementById('f-img-manual').value.trim();
+    if(manualImg) setPreview(manualImg);
+    var data={
+      id: editingId||String(Date.now()),
       name: name,
       platform: getPlatform(),
       status: document.getElementById('f-status').value,
-      progress: Math.min(100, Math.max(0, parseInt(document.getElementById('f-progress').value)||0)),
+      progress: Math.min(100,Math.max(0,parseInt(document.getElementById('f-progress').value)||0)),
       chapter: document.getElementById('f-chapter').value.trim(),
       url: document.getElementById('f-url').value.trim(),
       img: document.getElementById('f-img').value.trim()
     };
-    if (editingId) {
-      for (var i=0; i<courses.length; i++) { if (String(courses[i].id)===String(editingId)) { courses[i]=data; break; } }
+    if(editingId){
+      for(var i=0;i<courses.length;i++){ if(String(courses[i].id)===String(editingId)){ courses[i]=data; break; } }
     } else {
       courses.push(data);
     }
     closeModal();
-    render();
-    saveToSheet();
+    doSave();
   }
 
-  function deleteCourse(id) {
-    if (!confirm('確定要刪除這個課程嗎？')) return;
-    courses = courses.filter(function(c){ return String(c.id)!==String(id); });
-    render();
-    saveToSheet();
+  function deleteCourse(id){
+    if(!confirm('確定要刪除這個課程嗎？')) return;
+    courses=courses.filter(function(c){ return String(c.id)!==String(id); });
+    doSave();
   }
 
-  // --- Event listeners ---
-  document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
-  document.getElementById('btn-cancel').addEventListener('click', closeModal);
-  document.getElementById('btn-save').addEventListener('click', saveCourse);
-  document.getElementById('overlay').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
-  document.getElementById('f-platform').addEventListener('change', function() {
-    document.getElementById('f-custom').style.display = this.value==='__other__' ? 'block' : 'none';
+  document.getElementById('btn-add').addEventListener('click',function(){ openModal(null); });
+  document.getElementById('btn-cancel').addEventListener('click',closeModal);
+  document.getElementById('btn-save').addEventListener('click',saveCourse);
+  document.getElementById('overlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+  document.getElementById('f-platform').addEventListener('change',function(){
+    document.getElementById('f-custom').style.display=this.value==='__other__'?'block':'none';
   });
-  document.getElementById('f-img-manual').addEventListener('input', function() {
-    var val = this.value.trim();
-    if (val) setPreview(val);
+  document.getElementById('f-img-manual').addEventListener('input',function(){
+    var val=this.value.trim(); if(val) setPreview(val);
   });
-  document.getElementById('f-img-upload').addEventListener('change', function() {
-    var file = this.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) { setPreview(e.target.result); };
+  document.getElementById('f-img-upload').addEventListener('change',function(){
+    var file=this.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(e){ setPreview(e.target.result); };
     reader.readAsDataURL(file);
   });
-  document.getElementById('fetch-btn').addEventListener('click', function() {
-    var url = document.getElementById('f-url').value.trim();
-    if (!url) { alert('請先填入課程連結'); return; }
-    var btn = this;
-    btn.textContent='抓取中...'; btn.disabled=true;
+  document.getElementById('fetch-btn').addEventListener('click',function(){
+    var url=document.getElementById('f-url').value.trim();
+    if(!url){ alert('請先填入課程連結'); return; }
+    var btn=this; btn.textContent='抓取中...'; btn.disabled=true;
     fetch('https://api.microlink.io/?url='+encodeURIComponent(url))
       .then(function(r){ return r.json(); })
-      .then(function(data){
-        var img = data && data.data && data.data.image && data.data.image.url;
-        if (img) { setPreview(img); }
-        else {
-          return fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-            .then(function(r){ return r.json(); })
-            .then(function(d){
-              var html = d.contents||'';
-              var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                     || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-              if (m && m[1]) { setPreview(m[1]); }
-              else { alert('自動抓取失敗，請截圖後點「從電腦上傳」'); }
-            });
-        }
+      .then(function(d){
+        var img=d&&d.data&&d.data.image&&d.data.image.url;
+        if(img){ setPreview(img); }
+        else{ alert('自動抓取失敗，請截圖後點「從電腦上傳」'); }
       })
       .catch(function(){ alert('自動抓取失敗，請截圖後點「從電腦上傳」'); })
-      .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
+      .finally(function(){ btn.textContent='🔍 自動抓取'; btn.disabled=false; });
   });
-  document.querySelectorAll('.fbtn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+  document.querySelectorAll('.fbtn').forEach(function(btn){
+    btn.addEventListener('click',function(){
       document.querySelectorAll('.fbtn').forEach(function(b){ b.classList.remove('on'); });
       this.classList.add('on');
-      filter = this.getAttribute('data-filter');
+      filter=this.getAttribute('data-filter');
       render();
     });
   });
