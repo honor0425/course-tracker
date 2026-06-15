@@ -192,30 +192,33 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     sync('⏳ 載入中...');
     var local = null;
     try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) {}
-    var migrated = localStorage.getItem(MIGRATED_KEY);
 
     apiGet().then(function(data) {
-      if (Array.isArray(data) && data.length > 0) {
-        courses = data;
-        courses.forEach(function(c){ c.progress = parseInt(c.progress)||0; });
-        localStorage.setItem(MIGRATED_KEY, '1');
-        sync('✅ 已同步');
-        render();
-      } else if (!migrated && local && local.length > 0) {
-        courses = local;
-        sync('⏳ 匯入舊資料...');
-        apiSave(local).then(function() {
-          localStorage.setItem(MIGRATED_KEY, '1');
-          toast('✅ 舊資料已匯入！');
+      if (Array.isArray(data)) {
+        if (data.length > 0) {
+          // 試算表有資料，直接用
+          courses = data;
+          courses.forEach(function(c){ c.progress = parseInt(c.progress)||0; });
           sync('✅ 已同步');
-        }).catch(function(){
-          sync('⚠️ 匯入失敗');
-        });
-        render();
+          render();
+        } else if (local && local.length > 0) {
+          // 試算表空的，localStorage 有資料 → 匯入
+          courses = local;
+          sync('⏳ 匯入舊資料...');
+          apiSave(local).then(function() {
+            localStorage.removeItem(LOCAL_KEY);
+            toast('✅ 舊資料已匯入 Google 試算表！');
+            sync('✅ 已同步');
+          }).catch(function(){ sync('⚠️ 匯入失敗，資料仍在本機'); });
+          render();
+        } else {
+          // 全新開始
+          courses = [];
+          sync('✅ 已同步');
+          render();
+        }
       } else {
-        courses = local || [];
-        sync('✅ 已同步');
-        render();
+        throw new Error('invalid');
       }
     }).catch(function() {
       courses = local || [];
