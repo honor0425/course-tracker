@@ -134,7 +134,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
         <button class="img-btn" id="fetch-btn">🔍 自動抓取</button>
         <label class="img-btn">📁 從電腦上傳<input type="file" id="f-img-upload" accept="image/*" style="display:none"></label>
       </div>
-      <div class="hint">💡 抓取失敗時，截圖課程封面後點「從電腦上傳」</div>
+      <div class="hint">💡 抓取失敗時，截圖課程封面後點「從電腦上傳」<br>⚠️ 上傳的圖片只存在本機，換電腦會消失。建議先上傳到 <a href="https://imgur.com" target="_blank" rel="noopener" style="color:var(--tx2)">imgur.com</a>（免費，不用註冊），再複製圖片網址貼到下方</div>
       <input type="url" id="f-img-manual" placeholder="或手動貼上圖片網址" style="margin-top:6px">
     </div>
     <div class="mfoot">
@@ -164,12 +164,17 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem;display:flex;align-items:ce
     var extra = [];
     try { extra = JSON.parse(localStorage.getItem('ct-platforms')) || []; } catch(e) {}
     var all = DEFAULT_PLATFORMS.slice();
-    extra.forEach(function(p){ if(all.indexOf(p)<0) all.push(p); });
+    // 從課程資料自動抽取平台（換電腦也不會遺失）
+    courses.forEach(function(c){
+      if(c.platform && all.indexOf(c.platform.trim())<0) all.push(c.platform.trim());
+    });
+    extra.forEach(function(p){ if(p && all.indexOf(p.trim())<0) all.push(p.trim()); });
     return all;
   }
 
   function savePlatform(p) {
-    if(DEFAULT_PLATFORMS.indexOf(p)>=0 || p==='其他') return;
+    p = (p||'').trim();
+    if(!p || DEFAULT_PLATFORMS.indexOf(p)>=0 || p==='其他') return;
     var extra = [];
     try { extra = JSON.parse(localStorage.getItem('ct-platforms')) || []; } catch(e) {}
     if(extra.indexOf(p)<0){ extra.push(p); localStorage.setItem('ct-platforms', JSON.stringify(extra)); }
