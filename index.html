@@ -103,7 +103,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     <div class="frow">
       <div class="fg">
         <label class="fl">平台</label>
-        <select id="f-platform"><option>Udemy</option><option>Coursera</option><option>YouTube</option><option>hahow</option><option>Hiskio</option><option value="__other__">其他...</option></select>
+        <select id="f-platform"><option>Udemy</option><option>Coursera</option><option>YouTube</option><option>hahow</option><option>pressplay</option><option value="__other__">其他...</option></select>
         <input type="text" id="f-custom" placeholder="輸入平台名稱" style="margin-top:6px;display:none">
       </div>
       <div class="fg"><label class="fl">狀態</label><select id="f-status"><option value="todo">未開始</option><option value="doing">進行中</option><option value="done">已完成</option></select></div>
@@ -123,7 +123,14 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       <label class="fl">封面圖片</label>
       <div class="prev-box" id="preview">尚未設定封面</div>
       <input type="hidden" id="f-img">
-      <div class="hint">💡 自動抓取失敗時：對課程封面圖片按右鍵 → 複製圖片網址，貼到下方</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="fetch-btn" id="fetch-btn" style="flex:1">自動抓取封面</button>
+        <label class="fetch-btn" style="flex:1;text-align:center;cursor:pointer">
+          📁 從電腦上傳
+          <input type="file" id="f-img-upload" accept="image/*" style="display:none">
+        </label>
+      </div>
+      <div class="hint">💡 抓取失敗時可截圖後點「從電腦上傳」，或貼圖片網址：</div>
       <input type="url" id="f-img-manual" placeholder="手動貼上圖片網址" style="margin-top:6px">
     </div>
     <div class="mfoot"><button class="btn-no" id="btn-cancel">取消</button><button class="btn-ok" id="btn-save">儲存</button></div>
@@ -142,7 +149,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
   var courses = [];
   var filter = 'all';
   var editingId = null;
-  var PRESETS = ['Udemy','Coursera','YouTube','hahow','Hiskio'];
+  var PRESETS = ['Udemy','Coursera','YouTube','hahow','pressplay'];
 
   function showToast(msg) {
     var t = document.getElementById('toast');
@@ -232,7 +239,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     if (n==='coursera') return '#0056d2';
     if (n==='youtube') return '#ff0000';
     if (n==='hahow') return '#f65858';
-    if (n==='hiskio') return '#1565c0';
+    if (n==='pressplay') return '#1a1a2e';
     return '#6b6b67';
   }
 
@@ -392,6 +399,13 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     var val = this.value.trim();
     if (val) setPreview(val);
   });
+  document.getElementById('f-img-upload').addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) { setPreview(e.target.result); };
+    reader.readAsDataURL(file);
+  });
   document.getElementById('fetch-btn').addEventListener('click', function() {
     var url = document.getElementById('f-url').value.trim();
     if (!url) { alert('請先填入課程連結'); return; }
@@ -410,11 +424,11 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
               var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                      || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
               if (m && m[1]) { setPreview(m[1]); }
-              else { alert('自動抓取失敗，請右鍵課程封面圖片→複製圖片網址，貼到下方欄位'); }
+              else { alert('自動抓取失敗，請截圖後點「從電腦上傳」'); }
             });
         }
       })
-      .catch(function(){ alert('自動抓取失敗，請手動貼上圖片網址'); })
+      .catch(function(){ alert('自動抓取失敗，請截圖後點「從電腦上傳」'); })
       .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
   });
   document.querySelectorAll('.fbtn').forEach(function(btn) {
