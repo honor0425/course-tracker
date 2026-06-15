@@ -70,11 +70,14 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
 .btn-ok{background:var(--tx);color:var(--bg);border:none;font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
 .btn-no{background:transparent;color:var(--tx2);border:.5px solid var(--bd2);font-size:13px;padding:7px 18px;border-radius:var(--r);cursor:pointer}
 .btn-no:hover{background:var(--bg2)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+.sync-status{font-size:11px;color:var(--tx3);margin-left:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>📚 課程追蹤板</h1>
+  <h1>📚 課程追蹤板 <span class="sync-status" id="sync-status"></span></h1>
   <div class="sec-label">總覽</div>
   <div class="stats">
     <div class="stat"><div class="stat-label">課程總數</div><div class="stat-val" id="s-total">0</div><div class="stat-sub">所有平台</div></div>
@@ -120,30 +123,102 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       <label class="fl">封面圖片</label>
       <div class="prev-box" id="preview">尚未設定封面</div>
       <input type="hidden" id="f-img">
-      <div class="hint">💡 自動抓取失敗時：在課程頁對封面圖片按右鍵 → 複製圖片網址，貼到下方</div>
+      <div class="hint">💡 自動抓取失敗時：對課程封面圖片按右鍵 → 複製圖片網址，貼到下方</div>
       <input type="url" id="f-img-manual" placeholder="手動貼上圖片網址" style="margin-top:6px">
     </div>
     <div class="mfoot"><button class="btn-no" id="btn-cancel">取消</button><button class="btn-ok" id="btn-save">儲存</button></div>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 (function() {
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwvgvHGhqdEgS05vi8Xp__L0h4mraUzpDkuaLSpW6kXVicNKUS8DZFFSTrdiwOa2VIbTA/exec';
+  var TOKEN = 'honor0425-secret-2026';
+  var LOCAL_KEY = 'course-tracker-v1';
+  var MIGRATED_KEY = 'course-tracker-migrated';
+
   var courses = [];
   var filter = 'all';
   var editingId = null;
   var PRESETS = ['Udemy','Coursera','YouTube','hahow','Hiskio'];
-  var KEY = 'course-tracker-v1';
 
-  function load() {
-    try { courses = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { courses = []; }
-    render();
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2500);
   }
 
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(courses)); } catch(e) {}
+  function setSyncStatus(msg) {
+    document.getElementById('sync-status').textContent = msg;
   }
 
+  // --- API ---
+  function apiGet() {
+    return fetch(API_URL + '?token=' + TOKEN)
+      .then(function(r){ return r.json(); });
+  }
+
+  function apiSave(data) {
+    return fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ token: TOKEN, action: 'save', courses: data })
+    }).then(function(r){ return r.json(); });
+  }
+
+  // --- Init: migrate localStorage if needed ---
+  function init() {
+    setSyncStatus('⏳ 載入中...');
+    var migrated = localStorage.getItem(MIGRATED_KEY);
+    var local = null;
+    try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)); } catch(e) {}
+
+    if (!migrated && local && local.length > 0) {
+      // Has old local data — push to sheet first
+      setSyncStatus('⏳ 匯入舊資料...');
+      apiSave(local).then(function() {
+        localStorage.setItem(MIGRATED_KEY, '1');
+        localStorage.removeItem(LOCAL_KEY);
+        showToast('✅ 舊資料已匯入 Google 試算表！');
+        loadFromSheet();
+      }).catch(function() {
+        // Sheet unavailable, fall back to local
+        courses = local;
+        setSyncStatus('⚠️ 離線模式');
+        render();
+      });
+    } else {
+      loadFromSheet();
+    }
+  }
+
+  function loadFromSheet() {
+    apiGet().then(function(data) {
+      courses = Array.isArray(data) ? data : [];
+      courses.forEach(function(c) { c.progress = parseInt(c.progress)||0; });
+      setSyncStatus('✅ 已同步');
+      render();
+    }).catch(function() {
+      setSyncStatus('⚠️ 無法連線，使用本機資料');
+      try { courses = JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch(e) { courses = []; }
+      render();
+    });
+  }
+
+  function saveToSheet() {
+    setSyncStatus('⏳ 儲存中...');
+    apiSave(courses).then(function() {
+      setSyncStatus('✅ 已同步');
+      showToast('✅ 已儲存');
+    }).catch(function() {
+      setSyncStatus('⚠️ 儲存失敗');
+      showToast('⚠️ 儲存失敗，請檢查網路');
+    });
+  }
+
+  // --- Render ---
   function progColor(p) {
     if (p >= 100) return '#639922';
     if (p >= 50) return '#185FA5';
@@ -172,11 +247,11 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
   }
 
   function render() {
-    var visible = filter === 'all' ? courses : courses.filter(function(c){ return c.status===filter; });
+    var visible = filter==='all' ? courses : courses.filter(function(c){ return c.status===filter; });
     var total = courses.length;
     var done = courses.filter(function(c){ return c.status==='done'; }).length;
     var doing = courses.filter(function(c){ return c.status==='doing'; }).length;
-    var avg = total ? Math.round(courses.reduce(function(s,c){ return s+(c.progress||0); },0)/total) : 0;
+    var avg = total ? Math.round(courses.reduce(function(s,c){ return s+(parseInt(c.progress)||0); },0)/total) : 0;
     document.getElementById('s-total').textContent = total;
     document.getElementById('s-rate').textContent = avg+'%';
     document.getElementById('s-bar').style.width = avg+'%';
@@ -221,14 +296,12 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     });
   }
 
+  // --- Modal ---
   function setPreview(url) {
     var box = document.getElementById('preview');
-    document.getElementById('f-img').value = url || '';
-    if (url) {
-      box.innerHTML = '<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">';
-    } else {
-      box.textContent = '尚未設定封面';
-    }
+    document.getElementById('f-img').value = url||'';
+    if (url) { box.innerHTML = '<img src="'+esc(url)+'" onerror="this.parentNode.textContent=\'圖片載入失敗\'">'; }
+    else { box.textContent = '尚未設定封面'; }
   }
 
   function openModal(id) {
@@ -236,7 +309,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     document.getElementById('modal-title').textContent = id ? '編輯課程' : '新增課程';
     if (id) {
       var c = null;
-      for (var i=0; i<courses.length; i++) { if (courses[i].id===id) { c=courses[i]; break; } }
+      for (var i=0; i<courses.length; i++) { if (String(courses[i].id)===String(id)) { c=courses[i]; break; } }
       if (!c) return;
       document.getElementById('f-name').value = c.name||'';
       setPlatform(c.platform||'Udemy');
@@ -260,14 +333,12 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     setTimeout(function(){ document.getElementById('f-name').focus(); }, 50);
   }
 
-  function closeModal() {
-    document.getElementById('overlay').classList.remove('open');
-  }
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 
   function setPlatform(p) {
     var sel = document.getElementById('f-platform');
     var ci = document.getElementById('f-custom');
-    if (PRESETS.indexOf(p) >= 0) { sel.value=p; ci.style.display='none'; ci.value=''; }
+    if (PRESETS.indexOf(p)>=0) { sel.value=p; ci.style.display='none'; ci.value=''; }
     else { sel.value='__other__'; ci.style.display='block'; ci.value=p||''; }
   }
 
@@ -280,10 +351,8 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
   function saveCourse() {
     var name = document.getElementById('f-name').value.trim();
     if (!name) { alert('請輸入課程名稱'); return; }
-    // manual field overrides hidden field if filled
     var manualImg = document.getElementById('f-img-manual').value.trim();
     if (manualImg) setPreview(manualImg);
-    var img = document.getElementById('f-img').value.trim();
     var data = {
       id: editingId || String(Date.now()),
       name: name,
@@ -292,75 +361,61 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
       progress: Math.min(100, Math.max(0, parseInt(document.getElementById('f-progress').value)||0)),
       chapter: document.getElementById('f-chapter').value.trim(),
       url: document.getElementById('f-url').value.trim(),
-      img: img
+      img: document.getElementById('f-img').value.trim()
     };
     if (editingId) {
-      for (var i=0; i<courses.length; i++) { if (courses[i].id===editingId) { courses[i]=data; break; } }
+      for (var i=0; i<courses.length; i++) { if (String(courses[i].id)===String(editingId)) { courses[i]=data; break; } }
     } else {
       courses.push(data);
     }
-    save(); closeModal(); render();
+    closeModal();
+    render();
+    saveToSheet();
   }
 
   function deleteCourse(id) {
     if (!confirm('確定要刪除這個課程嗎？')) return;
-    courses = courses.filter(function(c){ return c.id!==id; });
-    save(); render();
+    courses = courses.filter(function(c){ return String(c.id)!==String(id); });
+    render();
+    saveToSheet();
   }
 
-  // auto-fetch using microlink (free, no key needed)
-  document.getElementById('fetch-btn').addEventListener('click', function() {
-    var url = document.getElementById('f-url').value.trim();
-    if (!url) { alert('請先填入課程連結'); return; }
-    var btn = this;
-    btn.textContent = '抓取中...'; btn.disabled = true;
-
-    // Try multiple proxies in sequence
-    var proxies = [
-      'https://api.microlink.io/?url=' + encodeURIComponent(url),
-      'https://api.allorigins.win/get?url=' + encodeURIComponent(url)
-    ];
-
-    function tryMicrolink() {
-      fetch(proxies[0])
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-          var img = data && data.data && data.data.image && data.data.image.url;
-          if (img) { setPreview(img); btn.textContent='自動抓取封面'; btn.disabled=false; }
-          else { tryAllOrigins(); }
-        })
-        .catch(function(){ tryAllOrigins(); });
-    }
-
-    function tryAllOrigins() {
-      fetch(proxies[1])
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-          var html = data.contents || '';
-          var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                 || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-          if (m && m[1]) { setPreview(m[1]); }
-          else { alert('自動抓取失敗，請用右鍵複製圖片網址後手動貼到「手動貼上圖片網址」欄位'); }
-        })
-        .catch(function(){ alert('自動抓取失敗，請用右鍵複製圖片網址後手動貼到「手動貼上圖片網址」欄位'); })
-        .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
-    }
-
-    tryMicrolink();
+  // --- Event listeners ---
+  document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  document.getElementById('btn-save').addEventListener('click', saveCourse);
+  document.getElementById('overlay').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+  document.getElementById('f-platform').addEventListener('change', function() {
+    document.getElementById('f-custom').style.display = this.value==='__other__' ? 'block' : 'none';
   });
-
-  // live preview when manual URL is pasted
   document.getElementById('f-img-manual').addEventListener('input', function() {
     var val = this.value.trim();
     if (val) setPreview(val);
   });
-
-  document.getElementById('btn-add').addEventListener('click', function() { openModal(null); });
-  document.getElementById('btn-cancel').addEventListener('click', closeModal);
-  document.getElementById('btn-save').addEventListener('click', saveCourse);
-  document.getElementById('overlay').addEventListener('click', function(e) { if (e.target===this) closeModal(); });
-  document.getElementById('f-platform').addEventListener('change', function() {
-    document.getElementById('f-custom').style.display = this.value==='__other__' ? 'block' : 'none';
+  document.getElementById('fetch-btn').addEventListener('click', function() {
+    var url = document.getElementById('f-url').value.trim();
+    if (!url) { alert('請先填入課程連結'); return; }
+    var btn = this;
+    btn.textContent='抓取中...'; btn.disabled=true;
+    fetch('https://api.microlink.io/?url='+encodeURIComponent(url))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var img = data && data.data && data.data.image && data.data.image.url;
+        if (img) { setPreview(img); }
+        else {
+          return fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+              var html = d.contents||'';
+              var m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                     || html.match(/content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+              if (m && m[1]) { setPreview(m[1]); }
+              else { alert('自動抓取失敗，請右鍵課程封面圖片→複製圖片網址，貼到下方欄位'); }
+            });
+        }
+      })
+      .catch(function(){ alert('自動抓取失敗，請手動貼上圖片網址'); })
+      .finally(function(){ btn.textContent='自動抓取封面'; btn.disabled=false; });
   });
   document.querySelectorAll('.fbtn').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -371,7 +426,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:2rem}
     });
   });
 
-  load();
+  init();
 })();
 </script>
 </body>
